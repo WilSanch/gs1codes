@@ -1,1 +1,1 @@
-from .core import mark_codes
+from .core import mark

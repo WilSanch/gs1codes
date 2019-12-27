@@ -1,5 +1,4 @@
 from typing import TypedDict, List
-from django.http import JsonResponse
 
 class MarkedCode(TypedDict):
     Codigo: int
@@ -34,11 +33,11 @@ class MarkCodeRespose(TypedDict):
 
 def mark_codes(marcation: MarkData) -> MarkCodeRespose:
     """Hacemos lo que toca hacer para marcar"""
-    return JsonResponse({
+    return {
         "IdCodigos": [{
             "Id": 1,
             "Codigo": 7007777777
         }],
         "MensajeUI": "Se marcó correctamente",
         "Respuesta": 200
-    })
+    }
