@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from simple_history.models import HistoricalRecords
 
-
 class State(models.Model):
     """ 
     Representa los estados del GTIN 
@@ -637,12 +636,12 @@ class Code(models.Model):
     Categoria GPC
     """
     
-    atc_category = models.ForeignKey(AtcCategory, on_delete=models.CASCADE, null=True)
+    atc_category = models.ForeignKey(AtcCategory, on_delete=models.CASCADE, null=True, related_name="codes")
     """
     Categoria ATC farmaceutico
     """
     
-    textil_category = models.ForeignKey(TextilCategory, on_delete=models.CASCADE, blank=True, null=True)
+    textil_category = models.ForeignKey(TextilCategory, on_delete=models.CASCADE, blank=True, null=True, related_name="codes")
     """
     Categoria Textil
     """
@@ -662,7 +661,7 @@ class Code(models.Model):
     estado del producto
     """
     
-    measure_unit =  models.ForeignKey(MeasureUnit, on_delete=models.CASCADE, blank=True, null=True)
+    measure_unit =  models.ForeignKey(MeasureUnit, on_delete=models.CASCADE, blank=True, null=True, related_name="codes")
     """
     unidad de medida
     """

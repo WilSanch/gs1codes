@@ -7,16 +7,17 @@ verify_ssl = true
 pylint = "*"
 autopep8 = "*"
 jupyter = "*"
+pytest = "*"
+mypy= "*"
 
 [packages]
-django = "*"
-djangorestframework = "*"
-django-simple-history = "*"
+django = "~=2.2.9"
+djangorestframework = "~=3.11.0"
+django-simple-history = "~=2.8.0"
 pandas = "~=0.25.1"
 pyodbc = "~=4.0.27"
-pyarrow = "==0.14.0" 
 psycopg2 = "~=2.8.3"
 SQLAlchemy = "~=1.3.7"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
