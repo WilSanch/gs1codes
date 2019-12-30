@@ -1,4 +1,5 @@
 from typing import TypedDict, List
+from administration.models.core import ProductType
 
 class MarkedCode(TypedDict):
     Codigo: int
@@ -33,6 +34,8 @@ class MarkCodeRespose(TypedDict):
 
 def mark_codes(marcation: MarkData) -> MarkCodeRespose:
     """Hacemos lo que toca hacer para marcar"""
+    # pt = ProductType(description=marcation["Nit"], state= False)
+    # pt.save()
     return {
         "IdCodigos": [{
             "Id": 1,

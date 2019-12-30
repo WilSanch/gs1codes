@@ -8,3 +8,4 @@ def mark(request):
     json_data = json.loads(request.body) # request.raw_post_data w/ Django < 1.4
     
     return JsonResponse(mark_codes(json_data))
+  
