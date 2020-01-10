@@ -1,46 +1,59 @@
-from typing import TypedDict, List
-from administration.models.core import ProductType
+import json
+from rest_framework import serializers
+from administration.models.core import ProductType,GpcCategory,MeasureUnit
+from administration.bussiness.models import *
 
-class MarkedCode(TypedDict):
-    Codigo: int
-    Prefix: int
-    Descripcion: str
-    TipoProducto: List[int]
-    Id: int
-    Brand: str
-    TargetMarket: str
-    Gpc: str
-    Url: str
-    State: int
-    MeasureUnit: int
-    Quantity: float
+class ProductTypeSerializer(serializers.ModelSerializer): 
+  class Meta: 
+    model = ProductType 
+    fields = '__all__'
 
-class MarkData(TypedDict):
-    Nit: str
-    Username: str
-    TipoProducto: int
-    Esquemas: List[int]
-    Codigos: List[MarkedCode]
-    id: int
-
-class CodeRespose(TypedDict):
-    Id: int
-    Codigo: int
+class GpcCategorySerializer(serializers.ModelSerializer): 
+  class Meta: 
+    model = GpcCategory 
+    # fields = ['brick_code','spanish_name_brick']
+    fields = '__all__'
     
-class MarkCodeRespose(TypedDict):
-    IdCodigos: List[CodeRespose]
-    MensajeUI: str
-    Respuesta: int
+class MeasureUnitsSerializer(serializers.ModelSerializer): 
+  class Meta: 
+    model = MeasureUnit 
+    # fields = ['brick_code','spanish_name_brick']
+    fields = '__all__'
 
-def mark_codes(marcation: MarkData) -> MarkCodeRespose:
-    """Hacemos lo que toca hacer para marcar"""
-    # pt = ProductType(description=marcation["Nit"], state= False)
-    # pt.save()
+def get_gpc_category(marcation: MarkData):
+    gpc =  GpcCategory.objects.all()     
+    data = {"result": list(gpc.values("id", "spanish_name_brick"))}        
+    return data
+    
+def mark_codes(marcation: MarkData):
+    jsonPrb = []
+    for code in marcation["Codigos"]:
+      jsonPrb.append({
+      "Cod":code['Codigo'],
+      "Msj":valida_ver(code)})     
+      
     return {
-        "IdCodigos": [{
-            "Id": 1,
-            "Codigo": 7007777777
-        }],
-        "MensajeUI": "Se marcó correctamente",
-        "Respuesta": 200
-    }
+        "IdCodigos": jsonPrb, #list(marcation["Codigos"]),
+        "MensajeUI": marcation["Nit"],
+        "Respuesta": 100
+    }  
+
+def valida_ver(code : MarkedCode):
+      
+      if('Gpc' not in code):
+            code['Gpc'] = None
+            print('Gpc Vacio: ' + str(code['Codigo']))
+                  
+      if('MeasureUnit' not in code):
+            code['MeasureUnit'] = None
+            print('MeasureUnit Vacio: ' + str(code['Codigo']))
+            
+      mu = MeasureUnit.objects.filter(id= code['MeasureUnit']).count()
+      if (mu>0):
+            gpc = GpcCategory.objects.filter(brick_code= code['Gpc']).count()    
+            if (gpc>0 ):
+              return True
+            else:
+              return 'No existe categoria GPC'
+      else:
+            return 'No existe unidad de medida'

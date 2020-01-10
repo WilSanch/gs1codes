@@ -231,7 +231,7 @@ class MeasureUnit(models.Model):
     Codigo de la unidad de medida
     """   
     
-    description = models.CharField(max_length=5)
+    description = models.CharField(max_length=50)
     """
     Descripcion de la unidad de medida
     """   
