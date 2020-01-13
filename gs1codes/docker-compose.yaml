@@ -6,5 +6,3 @@ services:
     environment:
       POSTGRES_PASSWORD: Desarrollo
       POSTGRES_DB: gs1codes
-    ports:
-      - "5432:5432"
