@@ -33,7 +33,10 @@ class Range(models.Model):
     """
     Representa los rangos que pueden tener un prefijo
     """
-    
+    country_code= models.CharField(max_length=5)
+    """
+    Representa el prefijo del pais
+    """
     name = models.CharField(max_length=50)
     """
     Nombres del rango
@@ -345,7 +348,7 @@ class Schema(models.Model):
     Estado del esquema
     """
     
-    validity_date = models.DateField(auto_now=False, auto_now_add=False)
+    validity_date = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
     """
     Fecha de validacion del esquema
     """
@@ -586,7 +589,7 @@ class Code(models.Model):
     Gtin o Codigo
     """
     
-    alternate_code = models.CharField(max_length=100)
+    alternate_code = models.CharField(max_length=100, blank=True, null=True)
     """
     Para almacenar el codigo internacional
     """
@@ -621,7 +624,7 @@ class Code(models.Model):
     estado del codigo
     """
     
-    agreement =  models.ForeignKey(Agreement, verbose_name=_(""), on_delete=models.CASCADE)
+    agreement =  models.ForeignKey(Agreement, verbose_name=_("agreement_id"), on_delete=models.CASCADE)
     """
     tipo de contrato o convenio
     """

@@ -13,7 +13,6 @@ class ptdetail(generics.RetrieveDestroyAPIView):
       queryset = ProductType.objects.all() 
       serializer_class = ProductTypeSerializer
 
-
 class ptcreate(generics.CreateAPIView):
       serializer_class = ProductTypeSerializer
       
@@ -21,7 +20,7 @@ class GetCategoriesGPC(generics.ListCreateAPIView):
       queryset = GpcCategory.objects.all() 
       serializer_class = GpcCategorySerializer
 
-class GetCategoriesGPC(generics.ListCreateAPIView):
+class GetMeasureUnits(generics.ListCreateAPIView):
       queryset = MeasureUnit.objects.all() 
       serializer_class = MeasureUnitsSerializer
 
