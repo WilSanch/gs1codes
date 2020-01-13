@@ -33,7 +33,7 @@ class Range(models.Model):
     """
     Representa los rangos que pueden tener un prefijo
     """
-    country_code= models.CharField(max_length=5)
+    country_code= models.CharField(max_length=5,blank=True, null=True)
     """
     Representa el prefijo del pais
     """
@@ -348,7 +348,7 @@ class Schema(models.Model):
     Estado del esquema
     """
     
-    validity_date = models.DateField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    validity_date = models.DateField(auto_now=False, auto_now_add=False, null=True)
     """
     Fecha de validacion del esquema
     """
@@ -624,7 +624,7 @@ class Code(models.Model):
     estado del codigo
     """
     
-    agreement =  models.ForeignKey(Agreement, verbose_name=_("agreement_id"), on_delete=models.CASCADE)
+    agreement =  models.ForeignKey(Agreement, verbose_name=_("agreement_id"), on_delete=models.CASCADE, null= True)
     """
     tipo de contrato o convenio
     """
