@@ -2,6 +2,7 @@ import json
 from rest_framework import serializers
 from administration.models.core import ProductType,GpcCategory,MeasureUnit
 from administration.bussiness.models import *
+from colorama import Fore, Back, Style
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
   class Meta: 
@@ -42,8 +43,9 @@ def valida_ver(code : MarkedCode):
       
       if('Gpc' not in code):
             code['Gpc'] = None
-            print('Gpc Vacio: ' + str(code['Codigo']))
-                  
+            print(Fore.RED + 'Gpc Vacio: ' + str(code['Codigo']))
+            print(Style.RESET_ALL)
+            
       if('MeasureUnit' not in code):
             code['MeasureUnit'] = None
             print('MeasureUnit Vacio: ' + str(code['Codigo']))

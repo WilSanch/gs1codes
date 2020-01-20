@@ -1,3 +1,6 @@
+import random
+from administration.models.core import Range,Prefix
+from django.db import models
 from administration.common.constants import StateCodes
 
 class Queries():
@@ -27,7 +30,7 @@ class Queries():
     def PrefixBySchema(Nit):
         query = '''
         select 
-        pref.id,
+        pref.id_prefix,
         sch.description
         from administration_prefix as pref
             inner join administration_schema as sch 
@@ -37,3 +40,35 @@ class Queries():
         where ent.identification = '{}'
         '''.format(Nit)
         return query
+    
+class Common():
+    
+    def CalculaDV(Gtin):
+        factor=3
+        sum=0
+        e = len(Gtin)-1
+        
+        while e>=0:
+            sum=sum + int(Gtin[e]) *  factor
+            factor = 4-factor
+            e=e-1
+
+        dv=(1000 - sum) % 10
+        GTIN_CDV = Gtin + str(dv)
+        return GTIN_CDV
+    
+    def PrefixGenerator(range_code):
+        model_range:Range = Range.objects.get(id=range_code)
+        
+        intial = int(str(model_range.country_code) + str(model_range.initial_value))
+        final = int(str(model_range.country_code) + str(model_range.final_value))
+        
+        all_prefix_list = range(intial,final)
+        
+        assigned_prefix_list = Prefix.objects.values_list('id_prefix', flat=True).filter(range_id=range_code)
+    
+        available_prefix_list = list(set(all_prefix_list)-set(assigned_prefix_list))
+        
+        prefix=random.sample(available_prefix_list, 1) 
+    
+        return prefix[0]
