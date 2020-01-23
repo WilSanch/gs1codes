@@ -58,10 +58,19 @@ class Common():
         return GTIN_CDV
     
     def PrefixGenerator(range_code):
+        '''
+        Genera un prefijo aleatorio basandose en el rango recibido 
+        y excluyendolo de los prefijos asignados en la base de datos
+        '''
         model_range:Range = Range.objects.get(id=range_code)
         
-        intial = int(str(model_range.country_code) + str(model_range.initial_value))
-        final = int(str(model_range.country_code) + str(model_range.final_value))
+        if str(model_range.initial_value)[0:3]=='770':
+            intial = int(str(model_range.initial_value))
+            final = int(str(model_range.final_value))
+        else:
+            intial = int(str(model_range.country_code) + str(model_range.initial_value))
+            final = int(str(model_range.country_code) + str(model_range.final_value))
+        
         
         all_prefix_list = range(intial,final)
         
@@ -72,3 +81,24 @@ class Common():
         prefix=random.sample(available_prefix_list, 1) 
     
         return prefix[0]
+    
+    def CodeGenerator(prefix, range_id):
+        
+        cat:Range = Range.objects.get(id=range_id)
+
+        quantity_code=cat.quantity_code
+        ceros= len(str(quantity_code))-1
+
+        listCodes =[]
+
+        for c in range(quantity_code):
+            
+            if ceros>0:
+                csdv = str(prefix) + str(c).zfill(ceros)
+            else:
+                csdv = str(prefix)
+            
+            ccdv = Common.CalculaDV(csdv)
+            listCodes.append(ccdv)
+            
+        return listCodes

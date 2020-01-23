@@ -1,6 +1,8 @@
 import json
+import pandas as pd
 from rest_framework import serializers
 from administration.models.core import ProductType,GpcCategory,MeasureUnit
+from administration.common.functions import Queries, Common
 from administration.bussiness.models import *
 from colorama import Fore, Back, Style
 
@@ -27,6 +29,15 @@ def get_gpc_category(marcation: MarkData):
     return data
     
 def mark_codes(marcation: MarkData):
+    
+    codigosRepetidos = codigosRepetidosfn(marcation["Codigos"])
+    if(len(codigosRepetidos)>=1):
+          return {
+                "IdCodigos": codigosRepetidos,
+                "MensajeUI": marcation["Nit"],
+                "Respuesta": 'Error Codigos Repetidos'
+                }
+          
     jsonPrb = []
     for code in marcation["Codigos"]:
       jsonPrb.append({
@@ -38,6 +49,13 @@ def mark_codes(marcation: MarkData):
         "MensajeUI": marcation["Nit"],
         "Respuesta": 100
     }  
+
+def codigosRepetidosfn(codigos):  
+    df = pd.DataFrame(data=codigos)
+    rep = df.groupby(['Codigo']).count()
+    repetidos = rep[rep.Descripcion==2]
+    msgs = "El código " + repetidos.index.astype("str") + " tiene " + repetidos.Descripcion.astype("str") + " repeticiones"
+    return msgs.to_list()
 
 def valida_ver(code : MarkedCode):
       

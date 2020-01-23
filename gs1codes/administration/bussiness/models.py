@@ -34,7 +34,6 @@ class CodeRespose(TypedDict):
     """
     Diccionario con codigos marcados
     """
-    
     Id: int
     Codigo: int
     
