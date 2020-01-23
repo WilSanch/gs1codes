@@ -60,15 +60,24 @@ class Common():
     def PrefixGenerator(range_code):
         model_range:Range = Range.objects.get(id=range_code)
         
-        intial = int(str(model_range.country_code) + str(model_range.initial_value))
-        final = int(str(model_range.country_code) + str(model_range.final_value))
+        intial = int(model_range.initial_value)
+        final = int(model_range.final_value)
         
-        all_prefix_list = range(intial,final)
-        
+        all_prefix_list = range(intial,final)        
         assigned_prefix_list = Prefix.objects.values_list('id_prefix', flat=True).filter(range_id=range_code)
     
         available_prefix_list = list(set(all_prefix_list)-set(assigned_prefix_list))
         
         prefix=random.sample(available_prefix_list, 1) 
-    
-        return prefix[0]
+        prefix_to_create = int(str(model_range.country_code) + str(prefix[0]))
+        
+        return prefix_to_create
+
+    def AddYears(date_to_add, years):
+        try:
+        #Devuelve el mismo dia del año correspondiente
+            return date_to_add.replace(year = date_to_add.year + years)
+        except ValueError:
+        #Si no es el mismo día, retornará otro, es decir, del 29 de febrero al 1 de marzo, etc.
+            return date_to_add + (date(date_to_add.year + years, 1, 1) - date(date_to_add.year, 1, 1))
+        

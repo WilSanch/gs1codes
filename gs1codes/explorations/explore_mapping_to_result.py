@@ -71,10 +71,11 @@ GTIN_CDV = GTIN_SDV + str(dv)
 GTIN_CDV
 
 #%%
+
 from administration.common.functions import Queries,Common
+import timeit
 
 # %%
-%%time
 r=2
 pref = Common.PrefixGenerator(r)
 cat:Range = Range.objects.get(id=r)
@@ -86,10 +87,16 @@ display(pref)
 
 list =[]
 
-for c in range(x):
-    csdv = str(pref) + str(c).zfill(y)
-    ccdv = Common.CalculaDV(csdv)
-    list.append(ccdv)
+for c in range(0, x):
+    if (y == 0):
+        csdv = str(pref)
+    else:
+        csdv = str(pref) + str(c).zfill(y)
     
+    ccdv = Common.CalculaDV(csdv) 
+    display(ccdv)
+# %%
+id_prefix = 29002
+"7700" + str(id_prefix)[2:]
 
 # %%
