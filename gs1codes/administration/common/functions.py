@@ -74,6 +74,7 @@ class Common():
         
         all_prefix_list = range(intial,final)
         
+        all_prefix_list = range(intial,final)        
         assigned_prefix_list = Prefix.objects.values_list('id_prefix', flat=True).filter(range_id=range_code)
     
         available_prefix_list = list(set(all_prefix_list)-set(assigned_prefix_list))
