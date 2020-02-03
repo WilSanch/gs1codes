@@ -34,18 +34,45 @@ def get_gpc_category(marcation: MarkData):
     
 def mark_codes(marcation: MarkData):
     
+    jsonPrb = []
+      
     codigosRepetidos = codigosRepetidosfn(marcation["Codigos"])
+    
     if(len(codigosRepetidos)>=1):
           return {
                 "IdCodigos": codigosRepetidos,
                 "MensajeUI": marcation["Nit"],
                 "Respuesta": 'Error Codigos Repetidos'
                 }
-          
-    jsonPrb = []
+    
+    TotalMark = TotalMarkCodes(marcation['Codigos'])
+    AvailableCodesVariableWeight = TotalAviablesCodes(marcation["Nit"],True)
+    AvailableCodesNoneVariableWeight = TotalAviablesCodes(marcation["Nit"],False)
+    
+    if (TotalMark.TotalVariableWeight > AvailableCodesVariableWeight):
+         return {
+                "IdCodigos": jsonPrb,
+                "MensajeUI": 'Error Saldos',
+                "Respuesta": 'Esta tratando de marcar {} codigos de pesovariable y dispone de {}'.format(TotalMark.TotalVariableWeight,AvailableCodesVariableWeight)
+                }       
+         
+    if (TotalMark.TotalNonVariableWeight > AvailableCodesNoneVariableWeight):
+         return {
+                "IdCodigos": jsonPrb,
+                "MensajeUI": 'Error Saldos',
+                "Respuesta": 'Esta tratando de marcar {} codigos y dispone de {}'.format(TotalMark.TotalNonVariableWeight,AvailableCodesNoneVariableWeight)
+                }       
+    
+    dfcodesMark = pd.DataFrame(data=marcation['Codigos'])
+    dfcodesMarkGroup = dfcodesMark.groupby('TipoProducto')
+    
+    # Agrupacion pot Tipo de Producto
+    for TipoProducto, Codigo in dfcodesMarkGroup:
+        sal = Prbfn(Codigo,TipoProducto) 
+        
     for code in marcation["Codigos"]:
       jsonPrb.append({
-      "Cod":code['Codigo'],
+      "Cod":code['Descripcion'],
       "Msj":valida_ver(code)})     
       
     return {
@@ -60,6 +87,31 @@ def codigosRepetidosfn(codigos):
     repetidos = rep[rep.Descripcion==2]
     msgs = "El código " + repetidos.index.astype("str") + " tiene " + repetidos.Descripcion.astype("str") + " repeticiones"
     return msgs.to_list()
+
+def TotalMarkCodes(codigos):
+    dfcodesMark = pd.DataFrame(data=codigos)
+    dfcodesMarkGroup = dfcodesMark.groupby('TipoProducto') 
+    
+    markCodeGroupbyType = MarkCodeGroupbyType 
+    markCodeGroupbyType.TotalVariableWeight =dfcodesMarkGroup.get_group(ProductType.Producto_peso_variable.value)['Codigo'].count()
+    markCodeGroupbyType.TotalCodesMark = len(codigos)   
+    markCodeGroupbyType.TotalNonVariableWeight = markCodeGroupbyType.TotalCodesMark - markCodeGroupbyType.TotalVariableWeight
+    
+    return markCodeGroupbyType
+  
+def TotalAviablesCodes(Nit, VariableWeight):
+    q1 = Queries.AvailableCodes(Nit, VariableWeight)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    spv = cursor.fetchone()
+    return spv[0]
+ 
+def Prbfn(df,tp):
+      
+    for row_index, row in df.iterrows():
+        print('\n {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto']))
+        valida_ver(row)
+    
 
 def valida_ver(code : MarkedCode):
       

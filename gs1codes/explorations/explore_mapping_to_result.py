@@ -1,30 +1,18 @@
 # %%
+# from explorations import setup_django
 %load_ext autoreload
 %autoreload 2
-
-# %%
-# from explorations import setup_django
+import timeit
 import sys
 import os
 import django
 sys.path.extend([os.path.dirname(os.getcwd())])
 django.setup()
-#%%
+from administration.common.constants import StateCodes
 from administration.common.functions import Common, Queries
 from django.db import connection
 import pandas as pd
-from administration.models.core import ProductType,\
-    GpcCategory,\
-    MeasureUnit,\
-    Country,\
-    Enterprise,\
-    Code,\
-    Enterprise,\
-    Prefix,\
-    Schema,\
-    ProductType,\
-    Range,\
-    State
+from administration.models.core import *
 
 # %%
 Enterprise.objects.select_related('country')\
@@ -40,7 +28,7 @@ print(ent.query)
 
 
 # %%
-from administration.common.constants import StateCodes
+
 q1= Queries.CodesbyNitbyProductType('10203040', StateCodes().Asignado)
 cursor = connection.cursor()
 cursor.execute(q1)
@@ -52,10 +40,35 @@ cursor = connection.cursor()
 cursor.execute(q2)
 pand2 = pd.DataFrame(cursor.fetchall(),columns=['id','description'])
 pand2.set_index('id')
+<<<<<<< HEAD
 
 # %%
 %%time
 r=4
+=======
+# %%
+%%time
+r=4
+
+# %%
+# 7707335210045
+GTIN_SDV='770733521004'
+factor=3
+sum=0
+e = len(GTIN_SDV)-1
+ 
+while e>=0:
+    sum=sum + int(GTIN_SDV[e]) *  factor
+    factor = 4-factor
+    e=e-1
+
+dv=(1000 - sum) % 10
+GTIN_CDV = GTIN_SDV + str(dv)
+GTIN_CDV
+
+# %%
+r=2
+>>>>>>> 86ca463031dab408d1712b16409b8085f522632f
 pref = Common.PrefixGenerator(r)
 cat:Range = Range.objects.get(id=r)
 
@@ -102,7 +115,17 @@ for cod in listCodeFn:
 Code.objects.bulk_create(bulk_code)
 
 # %%
-Codigos= [{
+cursor = connection.cursor()
+spv = Queries.AvailableCodes('10203040', True)
+conn = connection.connection
+cursor = conn.cursor()
+cursor.execute(spv)
+value = cursor.fetchone()[0]
+value
+
+# %%
+ mark= {  
+  	"Codigos": [{
         "Codigo": 7709134070578,
         "Descripcion": "Calostro bovino",
         "Id": 0,
@@ -114,10 +137,9 @@ Codigos= [{
         "State": 3,
         "MeasureUnit": 12,
         "Quantity": 450.0,
-        "Prefix": ""
     },
     {
-        "Codigo": 7709134070579,
+        "Codigo": 7709134070576,
         "Descripcion": "Producto 2",
         "Id": 0,
         "TipoProducto": 1,
@@ -128,12 +150,9 @@ Codigos= [{
         "State": 3,
         "MeasureUnit": 1,
         "Quantity": 450.0,
-        "Prefix": ""
     },
     {
-        "Codigo": 7709134070559,
-        "Descripcion": "Producto 3",
-        "Id": 0,
+        "Descripcion": "Producto 2",
         "TipoProducto": 1,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
@@ -142,12 +161,11 @@ Codigos= [{
         "State": 3,
         "MeasureUnit": 9,
         "Quantity": 450.0,
-        "Prefix": ""
+        "Prefix": "770123"
     },
     {
-        "Descripcion": "Producto 4",
-        "Id": 0,
-        "TipoProducto": 7,
+        "Descripcion": "Producto PV",
+        "TipoProducto": 1,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
         "Gpc": "10001695",
@@ -155,6 +173,7 @@ Codigos= [{
         "State": 3,
         "MeasureUnit": 9,
         "Quantity": 450.0,
+<<<<<<< HEAD
         "Prefix": ""
     }]
 df = pd.DataFrame(data=Codigos)
@@ -171,5 +190,25 @@ for c in range(0, x):
 # %%
 id_prefix = 29002
 "7700" + str(id_prefix)[2:]
+=======
+    }],
+    "Esquemas": [1, 2, 3, 6],
+    "Nit": "10203040",
+    "TipoProducto": 1
+}
+# %%
+codesMark = mark['Codigos']
+df = pd.DataFrame(data=codesMark)
+df2 = df.groupby('TipoProducto')
 
+df2.get_group(1)
+
+# %%
+for TipoProducto, Codigo in df2:
+    # print('\nCREATE TABLE {}('.format(TipoProducto)) 
+    for row_index, row in Codigo.iterrows():
+>>>>>>> 86ca463031dab408d1712b16409b8085f522632f
+
+        print('\n {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto']))
+        
 # %%

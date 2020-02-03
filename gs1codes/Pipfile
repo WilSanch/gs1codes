@@ -21,7 +21,7 @@ psycopg2 = "~=2.8.3"
 SQLAlchemy = "~=1.3.7"
 django-rest-swagger = "*"
 coreapi = "*"
-
+fastparquet = "*"
 
 [requires]
 python_version = "3.8"
