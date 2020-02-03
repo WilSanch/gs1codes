@@ -125,7 +125,7 @@ def inactivation (prefixes: ActivationInactivationBM) -> MarkCodeRespose:
             "Respuesta": 400
         }
 
-def prefix_release()
+# def prefix_release()
 
 def Pruebas(obj: ActivationInactivationBM) -> MarkCodeRespose:
     resp = activation(obj)

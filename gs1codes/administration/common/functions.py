@@ -1,7 +1,7 @@
 import random
 from administration.models.core import Range,Prefix
 from django.db import models
-from administration.common.constants import StateCodes
+from administration.common.constants import StateCodes, StCodes, Ranges
 
 class Queries():
     # def __init__(self):
@@ -39,6 +39,29 @@ class Queries():
                 on pref.enterprise_id = ent.id
         where ent.identification = '{}'
         '''.format(Nit)
+        return query
+    
+    def AvailableCodes(Nit,Pv):
+        '''
+        Codigos Disponibles para marcacion segun Nit e indicando
+        si se necesita el saldo peso variable o no.
+        '''
+        operador = ' != ' 
+        if (Pv == True):
+             operador = ' = '
+        
+        query='''
+        select count(ac.id) from administration_code ac
+            inner join administration_prefix ap 
+                on  ac.prefix_id = ap.id and ac.range_id = ap.range_id 
+            inner join administration_enterprise ae
+                on ae.id = ap.enterprise_id 
+        where 
+        ap.range_id {} {} and
+        ap.state_id = {} and
+        ac.state_id = {} and
+        ae.identification ='{}'
+        '''.format(operador,Ranges.Peso_variable.value,StCodes.Asignado.value,StCodes.Disponible.value,Nit)
         return query
     
 class Common():

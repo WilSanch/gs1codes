@@ -44,3 +44,11 @@ class MarkCodeRespose(TypedDict):
     IdCodigos: List[CodeRespose]
     MensajeUI: str
     Respuesta: int
+    
+class MarkCodeGroupbyType(TypedDict):
+    '''
+    Objeto agrupando codigos por tipo de la marcacion solicitada
+    '''
+    TotalVariableWeight: int
+    TotalNonVariableWeight: int
+    TotalCodesMark: int
