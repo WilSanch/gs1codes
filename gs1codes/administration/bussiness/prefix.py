@@ -7,7 +7,7 @@ from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise
 from administration.bussiness.codes import code_assignment
-from administration.common.constants import States, UserMessages, PrefixRangeType, CodeType, StateCodes
+from administration.common.constants import UserMessages, PrefixRangeType, CodeType, StCodes
 from administration.common.functions import Common
 from django.db.models import Q
 
@@ -29,10 +29,10 @@ def update_validity_date(model: Prefix):
 
 def prefix_activation(model: Prefix, assignment_date, observation, user):
     try:
-        if (model.state_id == States.NoReutilizable.value):
+        if (model.state_id == StCodes.NoReutilizable.value):
             return "No puede activar un prefijo cuyo estado es NO REUTILIZABLE"
         else:
-            model.state_id = States.Asignado.value
+            model.state_id = StCodes.Asignado.value
             model.assignment_date = assignment_date
             model.observation = "ACTIVACIÓN MANUAL: " + observation
             model.validity_date = update_validity_date(model)  
@@ -78,13 +78,13 @@ def prefix_inactivation(model: Prefix, modification_date, observation, user):
         
         if (str(model.id_prefix).startswith("29")): 
             prefix_to_inactivate: Prefix = Prefix.objects.get(id_prefix=get_id7700_from_id29(model.id_prefix))
-            prefix_to_inactivate.state_id = States.Suspendido.value
+            prefix_to_inactivate.state_id = StCodes.Suspendido.value
             prefix_to_inactivate.inactivation_date = modification_date
             prefix_to_inactivate.observation = "INACTIVACIÓN MANUAL: " + observation
         
             prefix_to_inactivate.save()
         else:
-            model.state_id = States.Suspendido.value
+            model.state_id = StCodes.Suspendido.value
             model.inactivation_date = modification_date
             model.observation = "INACTIVACIÓN MANUAL: " + observation
         
@@ -127,7 +127,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
     prefix_range: Range = None
 
     try:
-        if (ac.PrefixType == PrefixRangeType.PesoFijo or ac.PreferIndicatedPrefix):
+        if (ac.PrefixType == PrefixRangeType.PesoFijo.value or ac.PreferIndicatedPrefix):
             prefix_range = Range.objects.filter(id=ac.PrefixType)
         else:
             prefix_range = Range.objects.filter(quantity_code= quantity).exclude(country_code= 29).first()
@@ -142,7 +142,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
 
             new_prefix.id_prefix = assigned_prefix
             new_prefix.enterprise_id = enterprise.id
-            new_prefix.state_id = States.Asignado
+            new_prefix.state_id = StCodes.Asignado.value
             new_prefix.assignment_date = datetime.now()
             new_prefix.schema_id = schema.id
             new_prefix.range_id = prefix_range.id
@@ -191,10 +191,10 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         if (not combinacion):
             return "El esquema " + str(ac.Schema) + " y el tipo de código" + str(ac.Type) + "no se pueden combinar"
 
-        if (ac.PrefixType == PrefixRangeType.R_4D and ac.VariedFixedUse == True and
-            ac.Type == CodeType.DerechoIdentificaciónNuevos):
+        if (ac.PrefixType == PrefixRangeType.R_4D.value and ac.VariedFixedUse == True and
+            ac.Type == CodeType.DerechoIdentificacionExcenNuevos.value):
             
-            ac.PrefixType = PrefixRangeType.PesoFijo
+            ac.PrefixType = PrefixRangeType.PesoFijo.value
         
         if (combinacion.give_prefix == 1):
             range_obj: Range = None
@@ -216,7 +216,7 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
             return "Se presentó un error. " + result
 
         return {
-            "MensajeUI": "fun",
+            "MensajeUI": "Pruebas realizadas correctamente",
             "Respuesta": 200
         }    
     except Exception as ex:

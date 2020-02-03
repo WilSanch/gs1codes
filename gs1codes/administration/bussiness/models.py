@@ -1,5 +1,5 @@
 from typing import TypedDict, List
-from administration.common.constants import CodeType, Schema, PrefixRangeType
+from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType
 
 
 class MarkedCode(TypedDict):
@@ -59,7 +59,7 @@ class ActivationInactivationBM(TypedDict):
 class CodeAssignmentRequest(TypedDict):
     Nit: str
     BusinessName: str
-    Schema: Schema
+    Schema: SchemaCodes
     Quantity: int
     Type: CodeType
     PreferIndicatedPrefix: bool

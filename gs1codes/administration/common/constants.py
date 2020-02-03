@@ -1,19 +1,6 @@
 from enum import Enum
 
-class States():
-    Disponible = 1
-    Asignado = 2
-    Suspendido = 3
-    Reagrupado = 4
-    NoReutilizable = 5
-    UsoGS1 = 6
-    Reservado_Migracion = 9
-    PendienteProceso = 10
-    Procesado = 11
-    SuspendidoPorReagrupacion = 12
-    Cesion = 13
-
-class CodeType():
+class CodeType(Enum):
     CodigoGtin8Nuevos = 122
     DerechoIdentificacionNuevos = 55600
     DerechoIdentificacionExcenNuevos = 55601
@@ -22,7 +9,7 @@ class CodeType():
     DerechoIdentificacionConfeccionTextilCalzado = 55604
     IdentificacionDocumentos = 55800
 
-class Schema():
+class SchemaCodes(Enum):
     RenovacionAnual31Diciembre = 1
     Renovacion99Años = 2
     RenovacionAnualSegunFechaActivacion = 3
@@ -31,7 +18,7 @@ class Schema():
     RenovacionAnual31DiciembreGs1 = 6
     Esquema99AñosRVC = 7
 
-class PrefixRangeType():
+class PrefixRangeType(Enum):
     R_4D = 2
     R_5D = 3
     R_6D = 4
@@ -104,7 +91,7 @@ class Ranges(Enum):
     Peso_variable = 12
     Peso_variable_peso_fijo = 13
     
-class ProductType(Enum):
+class ProductTypeCodes(Enum):
     Producto = 1
     Textil = 2
     Farmacéutico = 3

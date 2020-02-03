@@ -4,7 +4,7 @@ import pandas as pd
 from rest_framework import serializers
 from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code
 from administration.common.functions import Queries, Common
-from administration.common.constants import ProductType, StateCodes
+from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *
 from datetime import datetime
 
@@ -143,13 +143,13 @@ def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, ra
     bulk_code=[]
 
     if (ac.Type == CodeType.CodigoGtin8Nuevos):
-      product_type = ProductType.Producto
+      product_type = ProductType.Producto.value
 
     if (ac.Type == CodeType.DerechoIdentificacionGln):
-      product_type = ProductType.Gln
+      product_type = ProductType.GLN.value
 
     if (ac.Type == CodeType.IdentificacionDocumentos):
-      product_type = ProductType.Recaudo
+      product_type = ProductType.Recaudo.value
 
 
 
@@ -159,7 +159,7 @@ def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, ra
       new_code.id = code
       new_code.assignment_date = datetime.now()
       new_code.prefix_id = prefix.id
-      new_code.state_id = StateCodes.Asignado
+      new_code.state_id = StCodes.Asignado.value
       new_code.product_type_id = product_type
 
       bulk_code.append(new_code)

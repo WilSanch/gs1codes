@@ -1,7 +1,7 @@
 import random
 from administration.models.core import Range,Prefix
 from django.db import models
-from administration.common.constants import StateCodes, StCodes, Ranges
+from administration.common.constants import StCodes, Ranges
 
 class Queries():
     # def __init__(self):
