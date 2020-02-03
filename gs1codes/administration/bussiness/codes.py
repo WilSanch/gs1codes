@@ -1,10 +1,14 @@
+from django.db import transaction
 import json
 import pandas as pd
 from rest_framework import serializers
-from administration.models.core import ProductType,GpcCategory,MeasureUnit
+from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code
 from administration.common.functions import Queries, Common
+from administration.common.constants import ProductType, StateCodes
 from administration.bussiness.models import *
-from colorama import Fore, Back, Style
+from datetime import datetime
+
+# from colorama import Fore, Back, Style
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
   class Meta: 
@@ -61,8 +65,9 @@ def valida_ver(code : MarkedCode):
       
       if('Gpc' not in code):
             code['Gpc'] = None
-            print(Fore.RED + 'Gpc Vacio: ' + str(code['Codigo']))
-            print(Style.RESET_ALL)
+            # print(Fore.RED + 'Gpc Vacio: ' + str(code['Codigo']))
+            # print(Style.RESET_ALL)
+            print('')
             
       if('MeasureUnit' not in code):
             code['MeasureUnit'] = None
@@ -77,3 +82,41 @@ def valida_ver(code : MarkedCode):
               return 'No existe categoria GPC'
       else:
             return 'No existe unidad de medida'
+
+def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, range_prefix: Range):
+  try:
+    
+    product_type: int = None
+    code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id)
+    bulk_code=[]
+
+    if (ac.Type == CodeType.CodigoGtin8Nuevos):
+      product_type = ProductType.Producto
+
+    if (ac.Type == CodeType.DerechoIdentificacionGln):
+      product_type = ProductType.Gln
+
+    if (ac.Type == CodeType.IdentificacionDocumentos):
+      product_type = ProductType.Recaudo
+
+
+
+    for code in code_list:
+      new_code= Code()
+
+      new_code.id = code
+      new_code.assignment_date = datetime.now()
+      new_code.prefix_id = prefix.id
+      new_code.state_id = StateCodes.Asignado
+      new_code.product_type_id = product_type
+
+      bulk_code.append(new_code)
+    
+    with transaction.atomic():
+      Code.objects.bulk_create(bulk_code)
+
+    return ""
+
+  except IntegrityError:
+    return "No fue posible insertar los códigos."
+

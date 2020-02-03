@@ -1,4 +1,5 @@
 from typing import TypedDict, List
+from administration.common.constants import CodeType, Schema, PrefixRangeType
 
 
 class MarkedCode(TypedDict):
@@ -44,3 +45,30 @@ class MarkCodeRespose(TypedDict):
     IdCodigos: List[CodeRespose]
     MensajeUI: str
     Respuesta: int
+
+class PrefixId(TypedDict):
+    Id: str
+    Range: int
+
+class ActivationInactivationBM(TypedDict):
+    Prefixes: PrefixId
+    Observation: str
+    AssignmentDate: None
+
+
+class CodeAssignmentRequest(TypedDict):
+    Nit: str
+    BusinessName: str
+    Schema: Schema
+    Quantity: int
+    Type: CodeType
+    PreferIndicatedPrefix: bool
+    PrefixType: PrefixRangeType
+    VariedFixedUse: bool
+    ScalePrefixes: bool
+
+class CodeAssignation(TypedDict):
+    AgreementName: str
+    IdAgreement: int
+    Request: CodeAssignmentRequest
+    UserName: str

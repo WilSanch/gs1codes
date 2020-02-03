@@ -70,10 +70,7 @@ class Common():
         else:
             intial = int(str(model_range.country_code) + str(model_range.initial_value))
             final = int(str(model_range.country_code) + str(model_range.final_value))
-        
-        
-        all_prefix_list = range(intial,final)
-        
+                
         all_prefix_list = range(intial,final)        
         assigned_prefix_list = Prefix.objects.values_list('id_prefix', flat=True).filter(range_id=range_code)
     

@@ -732,3 +732,56 @@ class Code_Gtin14(models.Model):
 
     def get_absolute_url(self):
         return reverse("Code_Gtin14_detail", kwargs={"pk": self.pk})
+
+
+
+
+class CodeTypeByRanges(models.Model):
+    """
+    Representa el código del tipo
+    """
+    code_type = models.IntegerField()
+    """
+    Representa el código del rango
+    """
+    range = models.ForeignKey(Range, verbose_name=_("Range_CodeTypeByRanges"), on_delete=models.CASCADE,blank=True, null=True)
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = _("CodeTypeByRange")
+        verbose_name_plural = _("CodeTypeByRanges")
+        
+    def __str__(self):
+        return self.id
+
+    def get_absolute_url(self):
+        return reverse("CodeTypeByRanges_detail", kwargs={"pk": self.pk})
+
+
+class CodeTypeBySchemas(models.Model):
+    """
+    Representa el código del tipo
+    """
+    code_type = models.IntegerField()
+    """
+    Representa el código del esquema
+    """
+    schema = models.ForeignKey(Schema, verbose_name=_("schema_CodeTypeBySchemas"), on_delete=models.CASCADE,blank=True, null=True)
+    """
+    Representa si se le da el prefijo
+    """    
+    give_prefix = models.IntegerField()
+
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = _("CodeTypeBySchemas")
+        verbose_name_plural = _("CodeTypeBySchemas")
+        
+    def __str__(self):
+        return self.id
+
+    def get_absolute_url(self):
+        return reverse("CodeTypeBySchemas_detail", kwargs={"pk": self.pk})
+

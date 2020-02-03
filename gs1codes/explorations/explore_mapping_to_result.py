@@ -52,39 +52,10 @@ cursor = connection.cursor()
 cursor.execute(q2)
 pand2 = pd.DataFrame(cursor.fetchall(),columns=['id','description'])
 pand2.set_index('id')
-<<<<<<< HEAD
 
 # %%
 %%time
 r=4
-=======
-# %%
-ProductType.objects.all()
-
-# %%
-# 7707335210045
-GTIN_SDV='770733521004'
-factor=3
-sum=0
-e = len(GTIN_SDV)-1
- 
-while e>=0:
-    sum=sum + int(GTIN_SDV[e]) *  factor
-    factor = 4-factor
-    e=e-1
-
-dv=(1000 - sum) % 10
-GTIN_CDV = GTIN_SDV + str(dv)
-GTIN_CDV
-
-#%%
-
-from administration.common.functions import Queries,Common
-import timeit
-
-# %%
-r=2
->>>>>>> 5701022cc60793cdc67c67cd43b831ba78beb670
 pref = Common.PrefixGenerator(r)
 cat:Range = Range.objects.get(id=r)
 
@@ -95,7 +66,6 @@ display(pref)
 
 listCodes =[]
 
-<<<<<<< HEAD
 for c in range(x):
     csdv = str(pref) + str(c).zfill(y)
     ccdv = Common.CalculaDV(csdv)
@@ -190,7 +160,6 @@ Codigos= [{
 df = pd.DataFrame(data=Codigos)
 # rep = df.groupby(['Codigo']).count()
 # rep
-=======
 for c in range(0, x):
     if (y == 0):
         csdv = str(pref)
@@ -202,6 +171,5 @@ for c in range(0, x):
 # %%
 id_prefix = 29002
 "7700" + str(id_prefix)[2:]
->>>>>>> 5701022cc60793cdc67c67cd43b831ba78beb670
 
 # %%
