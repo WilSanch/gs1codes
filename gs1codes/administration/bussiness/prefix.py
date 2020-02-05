@@ -135,6 +135,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
             if (not prefix_range):                    
                 quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
                 prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
+                if (not prefix_range):
+                    return "No es posible asignar " + str(quantity) + " códigos a un prefijo."
 
         assigned_prefix = Common.PrefixGenerator(prefix_range.id)
         if (assigned_prefix != None):
@@ -157,9 +159,21 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
 
             if (result != ""):
                 raise IntegrityError
-            
-            return ""
 
+            if (combination.give_prefix == False):
+                bought_codes = min([quantity,quantity_range])
+
+                enterprise.code_quantity_purchased += bought_codes
+                enterprise.code_quantity_reserved += bought_codes
+                enterprise.code_residue = quantity_range - bought_codes
+
+            quantity -= quantity_range 
+            with transaction.atomic():
+                enterprise.save()
+
+            return ""
+        else:
+            return UserMessages.Msg04
     except IntegrityError as e:
         return "No fue posible guardar el prefijo." 
 
