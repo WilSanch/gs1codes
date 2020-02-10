@@ -1,6 +1,6 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from administration.bussiness.prefix import activation,Pruebas,inactivation
+from administration.bussiness.prefix import activation,Test,inactivation
 from rest_framework import generics
 from administration.bussiness.codes import mark_codes, get_gpc_category, ProductTypeSerializer, GpcCategorySerializer, MeasureUnitsSerializer
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
@@ -42,11 +42,11 @@ def inactivate(request):
     
     return JsonResponse(inactivation(json_data))
 
-def pruebas(request):
+def test(request):
   if request.method == 'POST':
     json_data = json.loads(request.body) 
     
-    return JsonResponse(Pruebas(json_data))
+    return JsonResponse(Test(json_data))
   
 def get_gpc(request):
   if request.method == 'POST':

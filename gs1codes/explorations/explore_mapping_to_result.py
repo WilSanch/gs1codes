@@ -16,7 +16,6 @@ from administration.common.functions import Common, Queries
 from django.db import connection
 import pandas as pd
 from administration.models.core import *
-from administration.bussiness.models import *
 
 # %%
  mark= {  

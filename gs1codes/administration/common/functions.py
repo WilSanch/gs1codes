@@ -1,7 +1,7 @@
 import random
 from administration.models.core import Range,Prefix
 from django.db import models
-from administration.common.constants import StateCodes, StCodes, Ranges
+from administration.common.constants import StCodes, Ranges
 
 class Queries():
     # def __init__(self):
@@ -206,10 +206,7 @@ class Common():
         else:
             intial = int(str(model_range.country_code) + str(model_range.initial_value))
             final = int(str(model_range.country_code) + str(model_range.final_value))
-        
-        
-        all_prefix_list = range(intial,final)
-        
+                
         all_prefix_list = range(intial,final)        
         assigned_prefix_list = Prefix.objects.values_list('id_prefix', flat=True).filter(range_id=range_code)
     

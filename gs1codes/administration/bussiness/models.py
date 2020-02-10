@@ -1,4 +1,5 @@
 from typing import TypedDict, List
+from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType
 
 
 class MarkedCode(TypedDict):
@@ -44,15 +45,6 @@ class MarkCodeRespose(TypedDict):
     IdCodigos: List[CodeRespose]
     MensajeUI: str
     Respuesta: int
-    
-class MarkCodeGroupbyType(TypedDict):
-    '''
-    Objeto agrupando codigos por tipo de la marcacion solicitada
-    '''
-    TotalVariableWeight: int
-    TotalNonVariableWeight: int
-    TotalCodesMark: int
-
 class ListPrefix(TypedDict):
     Prefix: int
     Codes: List[int]
