@@ -8,11 +8,11 @@ class MarkedCode(TypedDict):
     Codigo: int
     Prefix: int
     Descripcion: str
-    TipoProducto: List[int]
-    Id: int
+    TipoProducto: int
     Brand: str
     TargetMarket: str
     Gpc: str
+    Atc: str
     Url: str
     State: int
     MeasureUnit: int
@@ -52,3 +52,16 @@ class MarkCodeGroupbyType(TypedDict):
     TotalVariableWeight: int
     TotalNonVariableWeight: int
     TotalCodesMark: int
+
+class ListPrefix(TypedDict):
+    Prefix: int
+    Codes: List[int]
+
+class RequestCodes(TypedDict):
+    '''
+    Objeto con cantidad de codigos manuales ,automaticos y con prefijo en la peticion de marcacion
+    '''
+    Auto: List[int]
+    Manual: List[int]
+    Prefix : List[ListPrefix]
+

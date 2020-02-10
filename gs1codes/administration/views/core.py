@@ -1,6 +1,5 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from administration.bussiness.codes import mark_codes
 from administration.bussiness.prefix import activation,Pruebas,inactivation
 from rest_framework import generics
 from administration.bussiness.codes import mark_codes, get_gpc_category, ProductTypeSerializer, GpcCategorySerializer, MeasureUnitsSerializer

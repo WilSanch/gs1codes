@@ -2,126 +2,27 @@
 # from explorations import setup_django
 %load_ext autoreload
 %autoreload 2
+import math
 import timeit
+import collections
 import sys
 import os
 import django
+import pandas as pd
 sys.path.extend([os.path.dirname(os.getcwd())])
 django.setup()
-from administration.common.constants import StateCodes
+from administration.common.constants import *
 from administration.common.functions import Common, Queries
 from django.db import connection
 import pandas as pd
 from administration.models.core import *
-
-# %%
-Enterprise.objects.select_related('country')\
-    .values('id',
-            'enterprise_name',
-            'country__name')\
-    .get(id=2)
-
-# %%
-ent = Enterprise.objects.select_related('prefix',)\
-.values('id','prefix','prefix__range_id')
-print(ent.query)
-
-
-# %%
-
-q1= Queries.CodesbyNitbyProductType('10203040', StateCodes().Asignado)
-cursor = connection.cursor()
-cursor.execute(q1)
-pand = pd.DataFrame(cursor.fetchall(),columns=['ProductTypeId','Description','CantGLN'])
-pand
-# %%
-q2 =  Queries.PrefixBySchema('10203040')
-cursor = connection.cursor()
-cursor.execute(q2)
-pand2 = pd.DataFrame(cursor.fetchall(),columns=['id','description'])
-pand2.set_index('id')
-# %%
-%%time
-r=4
-
-# %%
-# 7707335210045
-GTIN_SDV='770733521004'
-factor=3
-sum=0
-e = len(GTIN_SDV)-1
- 
-while e>=0:
-    sum=sum + int(GTIN_SDV[e]) *  factor
-    factor = 4-factor
-    e=e-1
-
-dv=(1000 - sum) % 10
-GTIN_CDV = GTIN_SDV + str(dv)
-GTIN_CDV
-
-# %%
-r=2
-pref = Common.PrefixGenerator(r)
-cat:Range = Range.objects.get(id=r)
-
-x=cat.quantity_code
-y= len(str(x))-1
-
-display(pref)
-
-listCodes =[]
-
-for c in range(x):
-    csdv = str(pref) + str(c).zfill(y)
-    ccdv = Common.CalculaDV(csdv)
-    listCodes.append(ccdv)
-    
-len(listCodes)
-# %%
-%time
-range_id=3
-prefFn = Common.PrefixGenerator(range_id)
-listCodeFn = Common.CodeGenerator(prefFn,range_id)
-
-display(prefFn)
-listCodeFn
-# %%
-insPref :  Prefix =  Prefix()
-insPref.id_prefix = int(prefFn)
-insPref.observation ='Pruebas Creacion'
-insPref.range = Range.objects.get(id=range_id)
-insPref.state = State.objects.get(id=2)
-insPref.save()
-
-#%%
-%%time
-bulk_code=[]
-
-for cod in listCodeFn:
-    new_code: Code = Code()
-    new_code.id = cod
-    new_code.state = State.objects.get(id=1)
-    new_code.prefix = Prefix.objects.get(id_prefix=prefFn)
-    bulk_code.append(new_code)
-
-Code.objects.bulk_create(bulk_code)
-
-# %%
-cursor = connection.cursor()
-spv = Queries.AvailableCodes('10203040', True)
-conn = connection.connection
-cursor = conn.cursor()
-cursor.execute(spv)
-value = cursor.fetchone()[0]
-value
+from administration.bussiness.models import *
 
 # %%
  mark= {  
   	"Codigos": [{
-        "Codigo": 7709134070578,
-        "Descripcion": "Calostro bovino",
-        "Id": 0,
+        "Codigo": 7703742071705,
+        "Descripcion": "Producto 1",
         "TipoProducto": 1,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
@@ -132,9 +33,8 @@ value
         "Quantity": 450.0,
     },
     {
-        "Codigo": 7709134070576,
+        "Codigo": 7703742071767,
         "Descripcion": "Producto 2",
-        "Id": 0,
         "TipoProducto": 1,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
@@ -145,7 +45,7 @@ value
         "Quantity": 450.0,
     },
     {
-        "Descripcion": "Producto 2",
+        "Descripcion": "Producto 3",
         "TipoProducto": 1,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
@@ -154,11 +54,22 @@ value
         "State": 3,
         "MeasureUnit": 9,
         "Quantity": 450.0,
-        "Prefix": "770123"
+        "Prefix": 77037423894
     },
     {
-        "Descripcion": "Producto PV",
+        "Descripcion": "Producto 4",
         "TipoProducto": 1,
+        "Brand": "MEDSURE",
+        "TargetMarket": "COL",
+        "Gpc": "10001695",
+        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
+        "State": 3,
+        "MeasureUnit": 9,
+        "Quantity": 450.0,
+    },
+    {
+        "Descripcion": "Producto 5",
+        "TipoProducto": 7,
         "Brand": "MEDSURE",
         "TargetMarket": "COL",
         "Gpc": "10001695",
@@ -179,10 +90,113 @@ df2 = df.groupby('TipoProducto')
 df2.get_group(1)
 
 # %%
+def Mark_Code_fn(Code):
+    q1 = Queries.codObj(Code,'10203040')
+    print(q1)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    CodObj =  pd.DataFrame(cursor.fetchall())
+    CodObj.head()
+# %%
+auto=0
+codManuales =[]
 for TipoProducto, Codigo in df2:
-    # print('\nCREATE TABLE {}('.format(TipoProducto)) 
+    
     for row_index, row in Codigo.iterrows():
-
-        print('\n {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto']))
+        if (not math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
+            codManuales.append(row['Codigo'])
+            
+        if (math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
+            auto = auto + 1 
+            
+    for row_index, row in Codigo.iterrows():
+        if (not math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
+            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'] ,'AsignacionManual'))
+            Mark_Code_fn(row['Codigo'])
         
+        if (math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
+            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'], 'AsignacionAuto')) 
+
+        if (not math.isnan(row['Prefix'])) and (math.isnan(row['Codigo'])):
+            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'], 'AsignacionPrefijo'))         
+
+print('\n Cantidad Codigos Automaticos: ' + str(auto))
+
+Cod1 = str(',').join([str(i) for i in codManuales])
+
+q1 = Queries.MarkingCodes(Cod1,'10203040',False, auto)
+cursor= connection.cursor()
+cursor.execute(q1)
+dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id'])
+CodDips = dpcd['id'].tolist()
+# %%
+q1 = Queries.codObj(7703742071705.0 ,'10203040')
+print(q1)
+cursor= connection.cursor()
+cursor.execute(q1)
+CodObj =  pd.DataFrame(data=cursor.fetchall(), columns=ColumnsCode)
+
+# %%
+q1 = Queries.codObj(7703742071767.0 ,'10203040')
+print(q1)
+cursor= connection.cursor()
+cursor.execute(q1)
+CodObj2 =  pd.DataFrame(data=cursor.fetchall(), columns=ColumnsCode)
+
+#%%
+dft = ColumnsDB.dfCodesOK()
+# %%
+Cod = CodObj.values.tolist()
+dft.loc[len(dft.index)] = Cod[0]
+
+# %%
+Codigos = [
+    {
+        "Descripcion": "Producto 6",
+        "TipoProducto": 1,
+        "Brand": "MEDSURE",
+        "TargetMarket": "COL",
+        "Gpc": "10001695",
+        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
+        "State": 3,
+        "MeasureUnit": 9,
+        "Quantity": 450.0,
+        "Prefix": 77037421776
+    },
+    {
+        "Descripcion": "Producto 7",
+        "TipoProducto": 1,
+        "Brand": "MEDSURE",
+        "TargetMarket": "COL",
+        "Gpc": "10001695",
+        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
+        "State": 3,
+        "MeasureUnit": 9,
+        "Quantity": 450.0,
+        "Prefix": 77037422010
+    },
+    {
+        "Descripcion": "Producto 6-1",
+        "TipoProducto": 1,
+        "Brand": "MEDSURE",
+        "TargetMarket": "COL",
+        "Gpc": "10001695",
+        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
+        "State": 3,
+        "MeasureUnit": 9,
+        "Quantity": 450.0,
+        "Prefix": 77037421776
+    }]
+# %%
+
+pref =[]
+pref.append(77037422010)
+pref.append(77037421776)
+pref.append(77037422010)
+
+Gpref = collections.Counter(pref)
+
+for p,c in Gpref.items():
+    print(p,':',c)
+
 # %%
