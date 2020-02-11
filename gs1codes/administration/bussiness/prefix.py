@@ -127,6 +127,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
     prefix_range: Range = None
 
     try:
+        quantity_range = 0
         if (ac.PrefixType == PrefixRangeType.PesoFijo.value or ac.PreferIndicatedPrefix):
             prefix_range = Range.objects.filter(id=ac.PrefixType)
         else:
