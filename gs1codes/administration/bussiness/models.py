@@ -1,7 +1,6 @@
 from typing import TypedDict, List
 from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType
 
-
 class MarkedCode(TypedDict):
     """
     Diccionario de propiedades de un codigo a marcar.
@@ -23,13 +22,11 @@ class MarkData(TypedDict):
     """
     Diccionario para la marcacion de un codigo.
     """
-    
     Nit: str
     Username: str
     TipoProducto: int
     Esquemas: List[int]
     Codigos: List[MarkedCode]
-    id: int
 
 class CodeRespose(TypedDict):
     """
@@ -45,6 +42,12 @@ class MarkCodeRespose(TypedDict):
     IdCodigos: List[CodeRespose]
     MensajeUI: str
     Respuesta: int
+    
+class MarkCodeGroupbyType(TypedDict):
+    TotalVariableWeight : int
+    TotalCodesMark: int
+    TotalNonVariableWeight: int
+    
 class ListPrefix(TypedDict):
     Prefix: int
     Codes: List[int]
@@ -57,3 +60,28 @@ class RequestCodes(TypedDict):
     Manual: List[int]
     Prefix : List[ListPrefix]
 
+class PrefixId(TypedDict):
+    Id: str
+    Range: int
+
+class ActivationInactivationBM(TypedDict):
+    Prefixes: PrefixId
+    Observation: str
+    AssignmentDate: None
+
+class CodeAssignmentRequest(TypedDict):
+    Nit: str
+    BusinessName: str
+    Schema: SchemaCodes
+    Quantity: int
+    Type: CodeType
+    PreferIndicatedPrefix: bool
+    PrefixType: PrefixRangeType
+    VariedFixedUse: bool
+    ScalePrefixes: bool
+
+class CodeAssignation(TypedDict):
+    AgreementName: str
+    IdAgreement: int
+    Request: CodeAssignmentRequest
+    UserName: str

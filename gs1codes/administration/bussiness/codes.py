@@ -9,7 +9,6 @@ from administration.common.functions import Queries, Common
 from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *
 from administration.common.constants import *
-from colorama import Fore, Back, Style
 from django.db import connection, transaction
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
@@ -98,7 +97,7 @@ def TotalMarkCodes(codigos):
     pv=0
     
     for c in codigos:
-        if(c['TipoProducto'] == ProductType.Producto_peso_variable.value):
+        if(c['TipoProducto'] == ProductTypeCodes.Producto_peso_variable.value):
             pv=pv+1
     
     if pv>0 : 
@@ -178,7 +177,7 @@ def MarkedCodesfn(df, Nit, TipoProducto):
     prefixGrouped = collections.Counter(Prefix)
     
     pv = False
-    if (TipoProducto == ProductType.Producto_peso_variable.value):
+    if (TipoProducto == ProductTypeCodes.Producto_peso_variable.value):
         pv = True
     
     if (len(codManuales)>0) :
@@ -192,7 +191,7 @@ def MarkedCodesfn(df, Nit, TipoProducto):
      
     if (len(Prefix)>0):
         for p,c in prefixGrouped.items():
-            print(p,':',c)    
+            # print(p,':',c)    
             q1 = Queries.MarkingCodesPrefix(Nit,pv,CodManual,p,c)
             cursor= connection.cursor()
             cursor.execute(q1)

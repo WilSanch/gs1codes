@@ -142,7 +142,6 @@ class Queries():
             {}
         LIMIT {}
         '''.format(Nit, StCodes.Asignado.value, StCodes.Disponible.value, operador, Prefix,codes,Cant)
-        print(query)
         return query
     
     def codObj(Nit,Code):
