@@ -9,11 +9,11 @@ class MarkedCode(TypedDict):
     Codigo: int
     Prefix: int
     Descripcion: str
-    TipoProducto: List[int]
-    Id: int
+    TipoProducto: int
     Brand: str
     TargetMarket: str
     Gpc: str
+    Atc: str
     Url: str
     State: int
     MeasureUnit: int
@@ -45,30 +45,15 @@ class MarkCodeRespose(TypedDict):
     IdCodigos: List[CodeRespose]
     MensajeUI: str
     Respuesta: int
+class ListPrefix(TypedDict):
+    Prefix: int
+    Codes: List[int]
 
-class PrefixId(TypedDict):
-    Id: str
-    Range: int
+class RequestCodes(TypedDict):
+    '''
+    Objeto con cantidad de codigos manuales ,automaticos y con prefijo en la peticion de marcacion
+    '''
+    Auto: List[int]
+    Manual: List[int]
+    Prefix : List[ListPrefix]
 
-class ActivationInactivationBM(TypedDict):
-    Prefixes: PrefixId
-    Observation: str
-    AssignmentDate: None
-
-
-class CodeAssignmentRequest(TypedDict):
-    Nit: str
-    BusinessName: str
-    Schema: SchemaCodes
-    Quantity: int
-    Type: CodeType
-    PreferIndicatedPrefix: bool
-    PrefixType: PrefixRangeType
-    VariedFixedUse: bool
-    ScalePrefixes: bool
-
-class CodeAssignation(TypedDict):
-    AgreementName: str
-    IdAgreement: int
-    Request: CodeAssignmentRequest
-    UserName: str

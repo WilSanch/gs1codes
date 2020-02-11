@@ -64,6 +64,119 @@ class Queries():
         '''.format(operador,Ranges.Peso_variable.value,StCodes.Asignado.value,StCodes.Disponible.value,Nit)
         return query
     
+    def MarkingCodesManual(Codes,Nit,PV, CantAuto):
+        
+        operador = '!=' 
+        if (PV == True):
+             operador = '='
+             
+        query='''
+        SELECT Code.id
+        FROM administration_code AS Code
+            INNER JOIN administration_prefix AS Pref
+                ON Code.prefix_id = Pref.id
+            INNER JOIN administration_enterprise AS Ent
+                ON Pref.enterprise_id = Ent.id
+        WHERE Code.id NOT IN ( {} )
+            AND Ent.identification = '{}'
+            AND Pref.state_id = {}
+            AND Code.state_id = {}
+            AND Pref.range_id {} 12
+        LIMIT {}
+        '''.format(Codes, Nit, StCodes.Asignado.value, StCodes.Disponible.value, operador, CantAuto)
+        return query
+    
+    def MarkingCodesAuto(Nit,PV, CodPref, CodManual, CantAuto):
+        
+        codesManual = ' '
+        if len(CodManual)>0:
+           codesManual= ' AND Code.id NOT IN ({})'.format(CodManual)  
+        
+        codesPref = ' '
+        if len(CodPref)>0:
+           codesPref= ' AND Code.id NOT IN ({})'.format(CodPref)  
+        
+        operador = '!=' 
+        if (PV == True):
+             operador = '='
+             
+        query='''
+        SELECT Code.id
+        FROM administration_code AS Code
+            INNER JOIN administration_prefix AS Pref
+                ON Code.prefix_id = Pref.id
+            INNER JOIN administration_enterprise AS Ent
+                ON Pref.enterprise_id = Ent.id
+        WHERE Ent.identification = '{}'
+            AND Pref.state_id = {}
+            AND Code.state_id = {}
+            AND Pref.range_id {} 12
+            {}
+            {}
+        LIMIT {}
+        '''.format(Nit, StCodes.Asignado.value, StCodes.Disponible.value, operador, codesManual, codesPref, CantAuto)
+        return query
+    
+    def MarkingCodesPrefix(Nit,PV,codManuales,Prefix,Cant):
+        
+        codes =' '
+        if len(codManuales)>0:
+           codes= ' AND Code.id NOT IN ({})'.format(codManuales) 
+        
+        operador = '!=' 
+        if (PV == True):
+             operador = '='
+             
+        query='''
+        SELECT Code.id
+        FROM administration_code AS Code
+            INNER JOIN administration_prefix AS Pref
+                ON Code.prefix_id = Pref.id
+            INNER JOIN administration_enterprise AS Ent
+                ON Pref.enterprise_id = Ent.id
+        WHERE Ent.identification = '{}'
+            AND Pref.state_id = {}
+            AND Code.state_id = {}
+            AND Pref.range_id {} 12
+            AND Pref.id_prefix = {}
+            {}
+        LIMIT {}
+        '''.format(Nit, StCodes.Asignado.value, StCodes.Disponible.value, operador, Prefix,codes,Cant)
+        print(query)
+        return query
+    
+    def codObj(Nit,Code):
+        query='''
+        SELECT 
+		Code.id ,
+        alternate_code ,
+        description ,
+        Code.assignment_date ,
+        url ,
+        quantity_code ,
+        gln_name ,
+        agreement_id ,
+        atc_category_id ,
+        brand_id,
+        gpc_category_id,
+        measure_unit_id ,
+        Code.prefix_id ,
+        product_state_id,
+        product_type_id ,
+        Code.range_id ,
+        Code.state_id ,
+        target_market_id ,
+        textil_category_id 
+        FROM administration_code AS Code
+            INNER JOIN administration_prefix AS Pref
+                ON Code.prefix_id = Pref.id
+            INNER JOIN administration_enterprise AS Ent
+                ON Pref.enterprise_id = Ent.id
+        WHERE Code.id = {}
+            AND Ent.identification = '{}'
+        '''.format(Nit, Code)
+        return query
+    
 class Common():
     
     def CalculaDV(Gtin):

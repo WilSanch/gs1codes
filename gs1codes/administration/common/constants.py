@@ -1,4 +1,5 @@
 from enum import Enum
+import pandas as pd
 
 class CodeType(Enum):
     CodigoGtin8Nuevos = 122
@@ -108,5 +109,32 @@ class ProductTypeCodes(Enum):
     Producto_GLN = 14
     Farmacéutico_No_Generico = 15
 
+class ProducState(Enum):
+    Acitvo_Publicado = 1
+    Inactivo = 2
+    En_Desarrollo = 3
 
+ColumnsCode = [
+    'id',
+    'alternate_code',
+    'description',
+    'assignment_date',
+    'url',
+    'quantity_code',
+    'gln_name',
+    'agreement_id',
+    'atc_category_id',
+    'brand_id',
+    'gpc_category_id',
+    'measure_unit_id',
+    'prefix_id',
+    'product_state_id',
+    'product_type_id',
+    'range_id',
+    'state_id',
+    'target_market_id',
+    'textil_category_id' 
+]
 
+def dfCodesOK(data=None):
+    return pd.DataFrame(data=data, columns = ColumnsCode)
