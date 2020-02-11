@@ -6,7 +6,7 @@ from django.db import transaction
 from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range  
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise
-# from administration.bussiness.codes import code_assignment
+from administration.bussiness.codes import code_assignment
 from administration.common.constants import UserMessages, PrefixRangeType, CodeType, StCodes
 from administration.common.functions import Common
 from django.db.models import Q
@@ -155,8 +155,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise: Enterprise, schema:
             with transaction.atomic():
                 new_prefix.save()
             
-            # with transaction.atomic():
-            #     result = code_assignment(new_prefix, ac, username, prefix_range)
+            with transaction.atomic():
+                result = code_assignment(new_prefix, ac, username, prefix_range)
 
             if (result != ""):
                 raise IntegrityError

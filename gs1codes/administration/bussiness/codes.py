@@ -271,3 +271,37 @@ def valida_codes(codes):
             code['Quantity'] = None
         
     return codes
+
+def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, range_prefix: Range):
+    try:
+    
+        product_type: int = None
+        code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id)
+        bulk_code=[]
+
+        if (ac.Type == CodeType.CodigoGtin8Nuevos):
+            product_type = ProductType.Producto
+
+        if (ac.Type == CodeType.DerechoIdentificacionGln):
+            product_type = ProductType.Gln
+
+        if (ac.Type == CodeType.IdentificacionDocumentos):
+            product_type = ProductType.Recaudo
+
+        for code in code_list:
+            new_code= Code()
+
+            new_code.id = code
+            new_code.assignment_date = datetime.now()
+            new_code.prefix_id = prefix.id
+            new_code.state_id = StateCodes.Asignado
+            new_code.product_type_id = product_type
+
+            bulk_code.append(new_code)
+        
+        with transaction.atomic():
+            Code.objects.bulk_create(bulk_code)
+
+        return ""
+    except IntegrityError:
+        return "No fue posible insertar los códigos."
