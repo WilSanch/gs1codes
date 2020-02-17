@@ -25,15 +25,29 @@ def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise):
     enterprise.code_quantity_reserved = 0 if enterprise.code_quantity_reserved == None else enterprise.code_quantity_reserved
     enterprise.code_quantity_consumed = 0 if enterprise.code_quantity_consumed == None else enterprise.code_quantity_consumed
 
-    if (ac.Quantity >= enterprise.code_residue):
-        ac.Quantity -= int(enterprise.code_residue)
-        enterprise.code_quantity_purchased += enterprise.code_residue
-        enterprise.code_quantity_reserved += enterprise.code_residue
-        enterprise.code_residue = 0
-    else:
-        enterprise.code_quantity_purchased += ac.Quantity
+    if (ac.Quantity <= enterprise.code_residue):
+        enterprise.code_residue += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
+        enterprise.code_quantity_purchased += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
         enterprise.code_quantity_reserved += ac.Quantity
         enterprise.code_residue -= ac.Quantity
-        ac.Quantity = 0
 
+        enterprise.code_residue -= ac.Quantity
+        enterprise.code_quantity_reserved += ac.Quantity
+    else:
+        if (len(str(ac.Quantity)) > 1):
+            if ((ac.Quantity - enterprise.code_residue) % 10 == 0):
+                purchased = ac.Quantity - enterprise.code_residue
+            else:
+                purchased = int(str(1).ljust(len(str(ac.Quantity - enterprise.code_residue)) + 1, '0'))
+        else:
+            purchased = ac.Quantity - enterprise.code_residue
+        enterprise.code_quantity_purchased += purchased
+
+        reserved = ac.Quantity
+        enterprise.code_quantity_reserved += reserved
+
+        residue = enterprise.code_quantity_purchased - enterprise.code_quantity_reserved
+        enterprise.code_residue = residue
+        
+    
     return enterprise

@@ -13,7 +13,8 @@ from administration.common.functions import Queries, Common
 from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *
 from administration.common.constants import *
-from django.db import IntegrityError, connection, transaction
+from django.db import connection, transaction
+from datetime import datetime
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
   class Meta: 
@@ -464,36 +465,51 @@ def valida_codes(codes):
         
     return codes
 
-def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, range_prefix: Range):
-    try:
+def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, enterprise, existing_prefix):
+  try:
     
-        product_type: int = None
-        code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id)
-        bulk_code=[]
+    product_type: int = None    
+    bulk_code=[]
 
-        if (ac.Type == CodeType.CodigoGtin8Nuevos):
-            product_type = ProductType.Producto
+    if (ac.Type == CodeType.CodigoGtin8Nuevos):
+      product_type = ProductType.Producto.value
 
-        if (ac.Type == CodeType.DerechoIdentificacionGln):
-            product_type = ProductType.Gln
+    if (ac.Type == CodeType.DerechoIdentificacionGln):
+      product_type = ProductType.GLN.value
 
-        if (ac.Type == CodeType.IdentificacionDocumentos):
-            product_type = ProductType.Recaudo
+    if (ac.Type == CodeType.IdentificacionDocumentos):
+      product_type = ProductType.Recaudo.value
 
+    if (not existing_prefix):
+        code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity)
+    else:
+        code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id,enterprise.code_residue)
+        
         for code in code_list:
             new_code= Code()
-
             new_code.id = code
             new_code.assignment_date = datetime.now()
-            new_code.prefix_id = prefix.id
+            new_code.prefix_id = existing_prefix.id
             new_code.state_id = StCodes.Asignado.value
             new_code.product_type_id = product_type
-
             bulk_code.append(new_code)
-        
-        with transaction.atomic():
-            Code.objects.bulk_create(bulk_code)
 
-        return ""
-    except IntegrityError as ex:
-        return "No fue posible insertar los códigos."
+        code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity - enterprise.code_residue)
+
+    for code in code_list:
+        new_code= Code()
+        new_code.id = code
+        new_code.assignment_date = datetime.now()
+        new_code.prefix_id = prefix.id
+        new_code.state_id = StCodes.Asignado.value
+        new_code.product_type_id = product_type
+
+        bulk_code.append(new_code)
+
+
+    with transaction.atomic():
+      Code.objects.bulk_create(bulk_code)
+
+    return ""
+  except IntegrityError:
+    return "No fue posible insertar los códigos."

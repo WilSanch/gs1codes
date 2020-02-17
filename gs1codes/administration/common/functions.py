@@ -1,6 +1,6 @@
 import random
-from administration.models.core import Range,Prefix
-from django.db import models
+from administration.models.core import Range,Prefix,Code
+from django.db import models, connection
 from administration.common.constants import StCodes, Ranges
 
 class Queries():
@@ -306,23 +306,58 @@ class Common():
     
         return prefix[0]
     
-    def CodeGenerator(prefix, range_id):
+    def CodeGenerator(prefix, range_id, quantity=0):
         
         cat:Range = Range.objects.get(id=range_id)
+        obj_prefix = Prefix.objects.get(id_prefix=prefix)
+        prefix_code = obj_prefix.id
 
-        quantity_code=cat.quantity_code
+        if (quantity==0):
+            quantity_code=cat.quantity_code
+        else:
+            quantity_code= quantity
+
         ceros= len(str(quantity_code))-1
 
-        listCodes =[]
+        all_code_list = []
 
-        for c in range(quantity_code):
-            
+        for i in range(cat.quantity_code):
             if ceros>0:
-                csdv = str(prefix) + str(c).zfill(ceros)
+                csdv = str(prefix) + str(i).zfill(ceros)
             else:
-                csdv = str(prefix)
+                csdv = str(prefix) + str(i)
             
             ccdv = Common.CalculaDV(csdv)
-            listCodes.append(ccdv)
-            
-        return listCodes
+            all_code_list.append(int(ccdv))
+
+        code_list = Code.objects.filter(prefix_id=prefix_code).values_list('id', flat=True)
+
+        if (not code_list):
+            result = random.sample(all_code_list, quantity)
+        else:
+            available_code_list = list(set(all_code_list)-set(code_list))
+            result = random.sample(available_code_list, quantity)
+        
+        return result
+
+    def GetAvailablePrefix(required_quantity):
+        query='''
+        select id, min(available_quantity) as available_quantity 
+        from 
+        (
+            select C.quantity_code - Count(B.id) as available_quantity, A.id
+            From administration_prefix A
+            left join administration_code B on A.id = B.prefix_id 
+            inner join administration_range C on A.range_id = C.id 
+            group by  A.id, C.quantity_code
+        ) a
+        where available_quantity >= {}
+        group by id
+        
+        '''.format(required_quantity)
+
+        cursor= connection.cursor()
+        cursor.execute(query)
+        spv = cursor.fetchone()
+        
+        return spv[0]
