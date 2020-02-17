@@ -1,6 +1,6 @@
 from enum import Enum
 import pandas as pd
-
+import re
 class CodeType(Enum):
     CodigoGtin8Nuevos = 122
     DerechoIdentificacionNuevos = 55600
@@ -45,6 +45,21 @@ class UserMessages():
     Msg03 = "El tipo de esquema no es válido."
     Msg04 ="La disponibilidad de codigos de tipo  ha llegado a su fin. Verifique la informacion de la empresa "
     Msg06 = "La empresa no tiene derecho al uso del prefijo indicado."
+
+class MarkMessages():
+    MarkOk = "Gtin Insertado Correctamente"
+    MarkNoExist = "Gtin no existe o no esta asociado a la empresa"
+    Error01 = "El código no se encuentra ni disponible ni reservado"
+    ErrorBrand = "Brand vacia o incorrecta"
+    ErrorTargetMarket = "Target Marked incorrecto"
+    ErrorGpc = "Categoria GPC incorrecta"
+    ErrorTextil = "Categoria Textil incorrecta"
+    ErrorAtc = "Categoria ATC incorrecta"
+    ErrorQuantity = "Quantity debe ser mayor a 0"
+    ErrorMeasureUnit= "MeasureUnit vacia o incorrecta"
+    ErrorUrl = "Url invalida o extension de imagen incorrecta"
+       
+    
 
 class ProductType():
     Producto = 1
@@ -95,7 +110,7 @@ class Ranges(Enum):
 class ProductTypeCodes(Enum):
     Producto = 1
     Textil = 2
-    Farmacéutico = 3
+    Farmaceutico = 3
     GLN = 4
     EAN_Punto_de_venta = 5
     Producto_unidad_de_empaque = 6
@@ -136,5 +151,22 @@ ColumnsCode = [
     'textil_category_id' 
 ]
 
+VALID_IMAGE_EXTENSIONS = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+]
+
+regexUrl = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
 def dfCodesOK(data=None):
     return pd.DataFrame(data=data, columns = ColumnsCode)
+
+def valid_url_extension(url, extension_list=VALID_IMAGE_EXTENSIONS):
+    return any([url.endswith(e) for e in extension_list])  

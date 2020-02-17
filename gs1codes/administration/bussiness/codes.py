@@ -1,15 +1,19 @@
 from django.db import transaction
+import collections
 import json
 import math
+import re
 import pandas as pd
-import collections
+from datetime import date
+from datetime import datetime
 from rest_framework import serializers
-from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code
+from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code,Country,AtcCategory,TextilCategory, Brand
+from administration.models.temporal import Code
 from administration.common.functions import Queries, Common
 from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *
 from administration.common.constants import *
-from django.db import connection, transaction
+from django.db import IntegrityError, connection, transaction
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
   class Meta: 
@@ -34,8 +38,6 @@ def get_gpc_category(marcation: MarkData):
     return data
     
 def mark_codes(marcation: MarkData):
-    
-    jsonPrb = []
       
     CodiVal = valida_codes(marcation["Codigos"])
     
@@ -54,14 +56,14 @@ def mark_codes(marcation: MarkData):
     
     if (TotalMark.TotalVariableWeight > AvailableCodesVariableWeight):
          return {
-                "IdCodigos": jsonPrb,
+                "IdCodigos": [],
                 "MensajeUI": 'Error Saldos',
                 "Respuesta": 'Esta tratando de marcar {} codigos de pesovariable y dispone de {}'.format(TotalMark.TotalVariableWeight,AvailableCodesVariableWeight)
                 }       
          
     if (TotalMark.TotalNonVariableWeight > AvailableCodesNoneVariableWeight):
          return {
-                "IdCodigos": jsonPrb,
+                "IdCodigos": [],
                 "MensajeUI": 'Error Saldos',
                 "Respuesta": 'Esta tratando de marcar {} codigos y dispone de {}'.format(TotalMark.TotalNonVariableWeight,AvailableCodesNoneVariableWeight)
                 }       
@@ -70,17 +72,20 @@ def mark_codes(marcation: MarkData):
     dfcodesMark[['Codigo','Prefix']]=dfcodesMark[['Codigo','Prefix']].astype(float)
     dfcodesMarkGroup = dfcodesMark.groupby('TipoProducto')
     
-    prb = Mark_Codes_fn(dfcodesMarkGroup, marcation['Nit'])
-
-    for code in marcation["Codigos"]:
-      jsonPrb.append({
-      "Cod":code['Descripcion'],
-      "Msj":valida_ver(code)})
-           
+    # se retonara el Df con los codigos OK y el resumen de la validacion de los codigos.
+    replyMarCode = Mark_Codes_fn(dfcodesMarkGroup, marcation['Nit'])
+    print(replyMarCode.Df)
+    cur = connection.cursor()
+    q1 = Queries.createCodeTemp()
+    cur.execute(q1)
+    print(replyMarCode.Df.to_dict('records'))
+    Code.objects.bulk_create(Code(**vals) for vals in replyMarCode.Df.to_dict('records'))
+    q2 =  Queries.upserCode()
+    cur.execute(q2)
     return {
-        "IdCodigos": jsonPrb, #list(marcation["Codigos"]),
-        "MensajeUI": marcation["Nit"],
-        "Respuesta": 100
+        "IdCodigos": replyMarCode.Codes,
+        "Respuesta": 100,
+        "MensajeUI": marcation["Nit"]
     }  
 
 def codigosRepetidosfn(codigos):  
@@ -101,7 +106,7 @@ def TotalMarkCodes(codigos):
             pv=pv+1
     
     if pv>0 : 
-        markCodeGroupbyType.TotalVariableWeight = dfcodesMarkGroup.get_group(ProductType.Producto_peso_variable.value)['Descripcion'].count()
+        markCodeGroupbyType.TotalVariableWeight = dfcodesMarkGroup.get_group(ProductTypeCodes.Producto_peso_variable.value)['Descripcion'].count()
     else:
         markCodeGroupbyType.TotalVariableWeight = 0
         
@@ -116,33 +121,204 @@ def TotalAviablesCodes(Nit, VariableWeight):
     spv = cursor.fetchone()
     return spv[0]
 
-def Mark_Code_fn(Code, Nit):
+def ChangeTypeGlnGtin(CodObj, Description):
+    '''
+    Cambios de Descripcion para GTIN tipo Producto_GLN
+    '''
+    descriptionGtin = DescriptionGtin
+    glnName=''
+    prodName=''
+    if (CodObj['product_type_id'].tolist()[0] == ProductTypeCodes.Producto.value \
+        or CodObj['product_type_id'].tolist()[0] == ProductTypeCodes.Textil.value  \
+        or CodObj['product_type_id'].tolist()[0] == ProductTypeCodes.Farmaceutico.value):
+        prodName = CodObj['description'].tolist()[0]
+        glnName = Description
+    
+    if (CodObj['product_type_id'].tolist()[0] == ProductTypeCodes.GLN.value \
+        or CodObj['product_type_id'].tolist()[0] == ProductTypeCodes.EAN_Punto_de_venta.value):
+        glnName = CodObj['description'].tolist()[0]
+        prodName = Description
+    
+    descriptionGtin.GlnName = glnName
+    descriptionGtin.ProdName = prodName
+    
+    return descriptionGtin
+
+def ValidateVerified(row):
+    '''
+    Validacion de Campos verified
+    '''
+    rv = ReplyVerify
+    rv.Msj = "Ok"
+    rv.Validate= True
+    
+    if len(row['Brand'])<=0:
+        rv.Msj = MarkMessages.ErrorBrand
+        rv.Validate = False
+    else:
+         if Brand.objects.filter(name = row['Brand']).count() <=0:
+            brand = Brand()
+            brand.name = row['Brand']
+            brand.save()
+    
+    if Country.objects.filter(iso_a3 = row['TargetMarket']).count() <=0:
+        rv.Msj = MarkMessages.ErrorTargetMarket
+        rv.Validate = False
+        return rv
+    
+    if row['TipoProducto'] == ProductTypeCodes.Producto.value:
+        if GpcCategory.objects.filter(brick_code= row['Gpc']).count()<= 0:
+            rv.Msj = MarkMessages.ErrorGpc
+            rv.Validate = False
+            return rv
+       
+    if row['TipoProducto'] == ProductTypeCodes.Textil.value:
+        if TextilCategory.objects.filter(code= row['Textil']).count()<= 0:
+            rv.Msj = MarkMessages.ErrorTextil
+            rv.Validate = False
+            return rv
+        if GpcCategory.objects.filter(brick_code= row['Gpc']).count()<= 0:
+            rv.Msj = MarkMessages.ErrorGpc
+            rv.Validate = False
+            return rv
+    
+    if row['TipoProducto'] == ProductTypeCodes.Farmaceutico.value:
+        if AtcCategory.objects.filter(code= row['Gpc']).count()<= 0:
+            rv.Msj = MarkMessages.ErrorAtc
+            rv.Validate = False
+            return rv
+        
+    if row['Quantity'] <= 0:
+        rv.Msj = MarkMessages.ErrorQuantity
+        rv.Validate = False
+        return rv
+    
+    if MeasureUnit.objects.filter(id = row['MeasureUnit']).count() <=0:
+        rv.Msj = MarkMessages.ErrorMeasureUnit
+        rv.Validate = False
+        return rv
+        
+    if (re.match(regexUrl, row['Url']) is not None):
+        url = valid_url_extension(row['Url'],VALID_IMAGE_EXTENSIONS)
+    else:
+        url = False
+    
+    if url == False:
+        rv.Msj = MarkMessages.ErrorUrl
+        rv.Validate = False
+        return rv
+        
+    return rv
+
+def Mark_Code_fn(Code, Nit, row):
+    '''
+    Validacion de datos para creacion del ROW a insertar en el DF
+    Return: Row listo para insertar en el DF
+    '''
+    rm = RequestMarkCode
     q1 = Queries.codObj(Code ,Nit)
     cursor= connection.cursor()
     cursor.execute(q1)
     CodObj =  dfCodesOK(data=cursor.fetchall())
+    
+    if (len(CodObj)<=0):
+        rm.Code = Code
+        rm.Msj = MarkMessages.MarkNoExist
+        rm.Row = None
+        return rm
 
     if (CodObj['state_id'].tolist()[0] != StCodes.Disponible.value) and \
        (CodObj['state_id'].tolist()[0] != StCodes.Reservado_Migración.value):
         print('Asignado')
+        if (row['TipoProducto'] == ProductTypeCodes.Producto_GLN.value) \
+            and (CodObj['product_state_id'].tolist()[0] == ProducState.En_Desarrollo.value):
+            # Creacion de Producto_GLN
+            descriptionGtin : DescriptionGtin = ChangeTypeGlnGtin(CodObj,row['Descripcion'])
+            CodObj.at[0,'description']=descriptionGtin.ProdName
+            CodObj.at[0,'gln_name']=descriptionGtin.GlnName
+            CodObj.at[0,'product_type_id']= ProductTypeCodes.Producto_GLN.value
+            CodObj.at[0,'assignment_date']= datetime.now()
+            rm.Code = Code
+            rm.Msj = MarkMessages.MarkOk
+            rm.Row = CodObj.values.tolist()
+            return rm
+        else:
+            rm.Code = Code
+            rm.Msj = MarkMessages.Error01
+            rm.Row = None
+            return rm
     else:
-        print('Disponible')  
+        if (row['TipoProducto'] == ProductTypeCodes.Producto.value or \
+            row['TipoProducto'] == ProductTypeCodes.Textil.value or \
+            row['TipoProducto'] == ProductTypeCodes.Farmaceutico.value): 
+            #validacion verified
+            validateVerified = ValidateVerified(row)
+            if validateVerified.Validate == True:                
+                CodObj.at[0,'description']=row['Descripcion']
+                CodObj.at[0,'assignment_date']= datetime.now()
+                CodObj.at[0,'url']= row['Url']
+                CodObj.at[0,'quantity_code']= row['Quantity']
+                CodObj.at[0,'brand_id']= Brand.objects.filter(name = row['Brand'])[0].id                
+                if row['TipoProducto'] == ProductTypeCodes.Producto.value:
+                    CodObj.at[0,'gpc_category_id']= GpcCategory.objects.filter(brick_code= row['Gpc'])[0].id
+                if row['TipoProducto'] == ProductTypeCodes.Textil.value:
+                    CodObj.at[0,'gpc_category_id']= GpcCategory.objects.filter(brick_code= row['Gpc'])[0].id
+                    CodObj.at[0,'textil_category_id']= TextilCategory.objects.filter(code= row['Textil'])[0].id
+                if row['TipoProducto'] == ProductTypeCodes.Farmaceutico.value:
+                    CodObj.at[0,'atc_category_id']= AtcCategory.objects.filter(code= row['Gpc'])[0].id
+                CodObj.at[0,'measure_unit_id']=  MeasureUnit.objects.filter(id= row['MeasureUnit'])[0].id
+                CodObj.at[0,'product_state_id']= row['State']
+                CodObj.at[0,'product_type_id']= row['TipoProducto']
+                CodObj.at[0,'state_id']=StCodes.Asignado.value
+                CodObj.at[0,'target_market_id']= Country.objects.filter(iso_a3= row['TargetMarket'])[0].iso_n3
+                rm.Code = Code
+                rm.Msj = MarkMessages.MarkOk
+                rm.Row = CodObj.values.tolist()
+                return rm
+            else:
+                rm.Code = Code
+                rm.Msj = validateVerified.Msj
+                rm.Row = None
+                return rm
+        else:
+            CodObj.at[0,'state_id']=StCodes.Asignado.value
+            CodObj.at[0,'description']=row['Descripcion']
+            CodObj.at[0,'assignment_date']= datetime.now()
+            CodObj.at[0,'product_type_id']= row['TipoProducto']
+            rm.Code = Code
+            rm.Msj = MarkMessages.MarkOk
+            rm.Row = CodObj.values.tolist()
+            return rm
     
 def Mark_Codes_fn(dfg, Nit):
-    
+    '''
+    Creacion del DF dependiento el tipo de marcacion para realizar el UPDATE de la tabla Codes
+    '''
+    replyMarCode=ReplyMarCode
+    rCodes = []
+    dfCodes = dfCodesOK();
     for TipoProducto, Codigo in dfg:
         rc = MarkedCodesfn(Codigo, Nit, TipoProducto)
         for row_index, row in Codigo.iterrows():
             if (not math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
                 #AsignacionManual
                 Code = rc.Manual.pop()
-                print(Code,' Manual')
-            
+                Cod = Mark_Code_fn(Code,Nit,row)
+                if not (Cod.Row == None):
+                    dfCodes.loc[len(dfCodes.index)] = Cod.Row[0]
+                    rCodes.append({"Cod":Cod.Code,"Desc":row['Descripcion'],"Msj":Cod.Msj})
+                else:
+                    rCodes.append({"Cod":Cod.Code,"Desc":row['Descripcion'],"Msj":Cod.Msj})    
             if (math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
                 #AsignacionAuto
                 Code = rc.Auto.pop()
-                print(Code, ' Auto')
-
+                Cod = Mark_Code_fn(Code,Nit,row)
+                if not (Cod.Row == None):
+                    dfCodes.loc[len(dfCodes.index)] = Cod.Row[0]
+                    rCodes.append({"Cod":Cod.Code,"Desc":row['Descripcion'],"Msj":Cod.Msj})
+                else:
+                    rCodes.append({
+                        "Cod":Cod.Code,"Desc":row['Descripcion'],"Msj":Cod.Msj})
             if (not math.isnan(row['Prefix'])) and (math.isnan(row['Codigo'])):
                 # AsignacionPrefijo
                 pr = row['Prefix']
@@ -150,9 +326,22 @@ def Mark_Codes_fn(dfg, Nit):
                     prc=prefix['Prefix']
                     if prc == pr:
                         Code = prefix['Codes'].pop()
-                        print(Code,' Prefijo:' , pr)
-            
+                        Cod = Mark_Code_fn(Code,Nit,row)
+                        if not (Cod.Row == None):
+                            dfCodes.loc[len(dfCodes.index)] = Cod.Row[0]
+                            rCodes.append({"Cod":Cod.Code,"Desc":row['Descripcion'],"Msj":Cod.Msj})
+                        else:
+                            rCodes.append({"Cod":Cod.Code,"Msj":Cod.Msj})
+    
+    #debo retornar el df con los codigos OK
+    replyMarCode.Codes = rCodes
+    replyMarCode.Df = dfCodes
+    return replyMarCode 
+      
 def MarkedCodesfn(df, Nit, TipoProducto):
+    '''
+    Se obtienen codigos manuales ,automaticos y con prefijo de la peticion de marcacion disponibles en la DB
+    '''
     rc = RequestCodes
     rc.Auto=[]
     rc.Manual=[]
@@ -233,6 +422,9 @@ def valida_ver(code : MarkedCode):
             return 'No existe unidad de medida'
         
 def valida_codes(codes):
+    '''
+    Validacion del JSON recibido en la peticion de marcacion
+    '''
     for code in codes:
         if('Codigo' not in code):
             code['Codigo'] = None
@@ -247,7 +439,7 @@ def valida_codes(codes):
             code['TipoProducto'] = None
         
         if('Brand' not in code):
-            code['Brand'] = None
+            code['Brand'] = ''
         
         if('TargetMarket' not in code):
             code['TargetMarket'] = None
@@ -255,8 +447,8 @@ def valida_codes(codes):
         if('Gpc' not in code):
             code['Gpc'] = None
         
-        if('Atc' not in code):
-            code['Atc'] = None
+        if('Textil' not in code):
+            code['Textil'] = None
         
         if('Url' not in code):
             code['Url'] = None
@@ -265,10 +457,10 @@ def valida_codes(codes):
             code['State'] = ProducState.En_Desarrollo.value
         
         if('MeasureUnit' not in code):
-            code['MeasureUnit'] = None
+            code['MeasureUnit'] = 0
         
         if('Quantity' not in code):
-            code['Quantity'] = None
+            code['Quantity'] = 0
         
     return codes
 
@@ -294,7 +486,7 @@ def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, ra
             new_code.id = code
             new_code.assignment_date = datetime.now()
             new_code.prefix_id = prefix.id
-            new_code.state_id = StateCodes.Asignado
+            new_code.state_id = StCodes.Asignado.value
             new_code.product_type_id = product_type
 
             bulk_code.append(new_code)
@@ -303,5 +495,5 @@ def code_assignment(prefix: Prefix, ac: CodeAssignmentRequest, username: str, ra
             Code.objects.bulk_create(bulk_code)
 
         return ""
-    except IntegrityError:
+    except IntegrityError as ex:
         return "No fue posible insertar los códigos."

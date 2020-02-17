@@ -176,6 +176,97 @@ class Queries():
         '''.format(Nit, Code)
         return query
     
+    def createCodeTemp():
+        query='''
+            CREATE TEMPORARY TABLE IF NOT EXISTS temp_code (
+                id BIGINT,
+                alternate_code BIGINT,
+                description VARCHAR(200),
+                assignment_date TIMESTAMP,
+                url VARCHAR(500),
+                quantity_code DECIMAL,
+                gln_name VARCHAR(100),
+                agreement_id INT,
+                atc_category_id INT,
+                brand_id INT,
+                gpc_category_id INT,
+                measure_unit_id INT,
+                prefix_id INT,
+                product_state_id INT,
+                product_type_id INT,
+                range_id INT,
+                state_id INT,
+                target_market_id INT,
+                textil_category_id INT)
+        '''
+        return query
+
+    def upserCode():
+        query='''
+            insert into administration_code
+                (
+                id,
+                alternate_code,
+                description,
+                assignment_date,
+                url,
+                quantity_code,
+                gln_name,
+                agreement_id,
+                atc_category_id,
+                brand_id,
+                gpc_category_id,
+                measure_unit_id,
+                prefix_id,
+                product_state_id,
+                product_type_id,
+                range_id,
+                state_id,
+                target_market_id,
+                textil_category_id
+                )
+            select
+                tc.id,
+                tc.alternate_code,
+                tc.description,
+                tc.assignment_date,
+                tc.url,
+                tc.quantity_code,
+                tc.gln_name,
+                tc.agreement_id,
+                tc.atc_category_id,
+                tc.brand_id,
+                tc.gpc_category_id,
+                tc.measure_unit_id,
+                tc.prefix_id,
+                tc.product_state_id,
+                tc.product_type_id,
+                tc.range_id,
+                tc.state_id,
+                tc.target_market_id,
+                tc.textil_category_id
+            from temp_code as tc
+            on conflict (id) do update 
+            set description = EXCLUDED.description,
+           		assignment_date= EXCLUDED.assignment_date,
+           		url=EXCLUDED.url,
+           		quantity_code= EXCLUDED.quantity_code,
+           		gln_name=EXCLUDED.gln_name,
+				agreement_id=EXCLUDED.agreement_id,
+				atc_category_id=EXCLUDED.atc_category_id,
+				brand_id=EXCLUDED.brand_id,
+				gpc_category_id=EXCLUDED.gpc_category_id,
+				measure_unit_id=EXCLUDED.measure_unit_id,
+				prefix_id=EXCLUDED.prefix_id,
+				product_state_id=EXCLUDED.product_state_id,
+				product_type_id=EXCLUDED.product_type_id,
+				range_id=EXCLUDED.range_id,
+				state_id=EXCLUDED.state_id,
+				target_market_id=EXCLUDED.target_market_id,
+				textil_category_id=EXCLUDED.textil_category_id;
+        '''
+        return query
+    
 class Common():
     
     def CalculaDV(Gtin):

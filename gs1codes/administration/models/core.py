@@ -111,7 +111,7 @@ class AtcCategory(models.Model):
     Representa las categorias ATC para los farmaceuticos
     """
     
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=20)
     """
     Codigo de la categoria ATC
     """
@@ -138,7 +138,7 @@ class TextilCategory(models.Model):
     Representa las categorias para los productos Textiles
     """
     
-    code = models.CharField(max_length=10)
+    code = models.CharField(max_length=20)
     """
     Codigo de la categoria Textil
     """

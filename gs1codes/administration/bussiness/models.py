@@ -12,7 +12,7 @@ class MarkedCode(TypedDict):
     Brand: str
     TargetMarket: str
     Gpc: str
-    Atc: str
+    Textil: str
     Url: str
     State: int
     MeasureUnit: int
@@ -85,3 +85,21 @@ class CodeAssignation(TypedDict):
     IdAgreement: int
     Request: CodeAssignmentRequest
     UserName: str
+
+class RequestMarkCode(TypedDict):
+    Code: int
+    Msj: str
+    Row: List[object]
+    
+class DescriptionGtin(TypedDict):
+    GlnName: str
+    ProdName: str
+
+class ReplyVerify(TypedDict):
+    Msj: str
+    Validate: bool
+    
+class ReplyMarCode(TypedDict):
+    Codes: List[object]
+    Df: object
+
