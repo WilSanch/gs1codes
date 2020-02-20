@@ -298,8 +298,10 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
             new_code.id = code
             new_code.assignment_date = datetime.now()
             new_code.prefix_id = existing_prefix.id
-            new_code.state_id = StCodes.Asignado.value
+            new_code.state_id = StCodes.Disponible.value
             new_code.product_type_id = product_type
+            new_code.range_id = prefix.range_id
+            
             bulk_code.append(new_code)
 
         code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity - enterprise.code_residue)
@@ -309,7 +311,8 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
         new_code.id = code
         new_code.assignment_date = datetime.now()
         new_code.prefix_id = prefix.id
-        new_code.state_id = StCodes.Asignado.value
+        new_code.state_id = StCodes.Disponible.value
+        new_code.range_id = prefix.range_id
         new_code.product_type_id = product_type
 
         bulk_code.append(new_code)
