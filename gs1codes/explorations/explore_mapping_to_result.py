@@ -81,7 +81,7 @@ from administration.models.core import *
     "Nit": "10203040",
     "TipoProducto": 1
 }
-# %%
+#%% 
 codesMark = mark['Codigos']
 df = pd.DataFrame(data=codesMark)
 df2 = df.groupby('TipoProducto')
@@ -197,5 +197,41 @@ Gpref = collections.Counter(pref)
 
 for p,c in Gpref.items():
     print(p,':',c)
+
+# %%
+import re
+regex = re.compile(
+        r'^(?:http|ftp)s?://' # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+        r'(?::\d+)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+# print(re.match(regex, "http://127.0.0.1:8000/codes/mark/") is not None) # True
+
+if re.match(regex, "https://google.com"):
+    print('url Valida')
+else:
+    print('url Error')
+# %%
+VALID_IMAGE_EXTENSIONS = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+]
+
+def valid_url_extension(url, extension_list=VALID_IMAGE_EXTENSIONS):
+    # http://stackoverflow.com/a/10543969/396300
+    return any([url.endswith(e) for e in extension_list])     
+
+# %%
+MeasureUnit.objects.filter(id= 9)[0].id
+
+# %%
+brand = Brand()
+brand.name = 'Marca1'
+brand.save()
+Brand.objects.filter(name = 'Marca1')[0].id
 
 # %%
