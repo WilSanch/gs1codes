@@ -1,6 +1,6 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from administration.bussiness.prefix import activation,Test,inactivation
+from administration.bussiness.prefix import activation,Test,inactivation,assignate_prefix
 from rest_framework import generics
 from administration.bussiness.codes import mark_codes, get_gpc_category, ProductTypeSerializer, GpcCategorySerializer, MeasureUnitsSerializer
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
@@ -41,6 +41,12 @@ def inactivate(request):
     json_data = json.loads(request.body) 
     
     return JsonResponse(inactivation(json_data))
+
+def assignate(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(assignate_prefix(json_data))
 
 def test(request):
   if request.method == 'POST':

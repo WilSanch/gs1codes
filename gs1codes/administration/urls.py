@@ -10,7 +10,8 @@ urlpatterns = [
     # ex: /polls/
     path('mark/', views.mark, name='mark_codes'),
     path('activate/', views.activate, name='prefix_activation'),
-    path('inactivate/', views.activate, name='prefix_inactivation'),
+    path('inactivate/', views.inactivate, name='prefix_inactivation'),
+    path('assignate/', views.assignate, name='prefix_assignation'),
     path('test/', views.test, name='Test'),
     # path('get_gpc/', views.get_gpc, name='get_gpc'),
     path("pt/", ptlist.as_view(), name="pt_list"),

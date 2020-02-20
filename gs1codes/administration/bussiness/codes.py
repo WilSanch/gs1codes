@@ -8,7 +8,7 @@ from datetime import date
 from datetime import datetime
 from rest_framework import serializers
 from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code,Country,AtcCategory,TextilCategory, Brand
-from administration.models.temporal import Code
+from administration.models.temporal import Code as TempCode
 from administration.common.functions import Queries, Common
 from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *

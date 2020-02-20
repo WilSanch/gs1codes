@@ -29,7 +29,7 @@ def update_validity_date(model: Prefix):
 
 def prefix_activation(model: Prefix, assignment_date, observation, user):
     try:
-        if (model.state_id == StCodes.NoReutilizable.value):
+        if (model.state_id == StCodes.No_Reutilizable.value):
             return "No puede activar un prefijo cuyo estado es NO REUTILIZABLE"
         else:
             model.state_id = StCodes.Asignado.value
@@ -274,7 +274,7 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
     except Exception as ex:
         return ex
 
-def Test(obj: CodeAssignation) -> MarkCodeRespose:
+def assignate_prefix(obj: CodeAssignation) -> MarkCodeRespose:
     agreement_name = obj['AgreementName']
 
     id_agreement = obj['IdAgreement']
@@ -295,6 +295,12 @@ def Test(obj: CodeAssignation) -> MarkCodeRespose:
 
     return {
         "MensajeUI": resp,
+        "Respuesta": 200
+    }    
+    
+def Test(obj: CodeAssignation) -> MarkCodeRespose:
+    return {
+        "MensajeUI": "resp",
         "Respuesta": 200
     }    
     
