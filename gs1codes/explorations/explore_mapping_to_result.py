@@ -1,5 +1,6 @@
 # %%
 # from explorations import setup_django
+from IPython.extensions import autoreload
 %load_ext autoreload
 %autoreload 2
 import math
@@ -8,6 +9,7 @@ import collections
 import sys
 import os
 import django
+import json
 import pandas as pd
 sys.path.extend([os.path.dirname(os.getcwd())])
 django.setup()
@@ -16,222 +18,80 @@ from administration.common.functions import Common, Queries
 from django.db import connection
 import pandas as pd
 from administration.models.core import *
-
-# %%
- mark= {  
-  	"Codigos": [{
-        "Codigo": 7703742071705,
-        "Descripcion": "Producto 1",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10003157",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 12,
-        "Quantity": 450.0,
-    },
-    {
-        "Codigo": 7703742071767,
-        "Descripcion": "Producto 2",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10000467",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 1,
-        "Quantity": 450.0,
-    },
-    {
-        "Descripcion": "Producto 3",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-        "Prefix": 77037423894
-    },
-    {
-        "Descripcion": "Producto 4",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-    },
-    {
-        "Descripcion": "Producto 5",
-        "TipoProducto": 7,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-    }],
-    "Esquemas": [1, 2, 3, 6],
-    "Nit": "10203040",
-    "TipoProducto": 1
-}
-#%% 
-codesMark = mark['Codigos']
-df = pd.DataFrame(data=codesMark)
-df2 = df.groupby('TipoProducto')
-
-df2.get_group(1)
-
-# %%
-def Mark_Code_fn(Code):
-    q1 = Queries.codObj(Code,'10203040')
-    print(q1)
-    cursor= connection.cursor()
-    cursor.execute(q1)
-    CodObj =  pd.DataFrame(cursor.fetchall())
-    CodObj.head()
-# %%
-auto=0
-codManuales =[]
-for TipoProducto, Codigo in df2:
-    
-    for row_index, row in Codigo.iterrows():
-        if (not math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
-            codManuales.append(row['Codigo'])
-            
-        if (math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
-            auto = auto + 1 
-            
-    for row_index, row in Codigo.iterrows():
-        if (not math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
-            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'] ,'AsignacionManual'))
-            Mark_Code_fn(row['Codigo'])
-        
-        if (math.isnan(row['Codigo'])) and (math.isnan(row['Prefix'])):
-            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'], 'AsignacionAuto')) 
-
-        if (not math.isnan(row['Prefix'])) and (math.isnan(row['Codigo'])):
-            print('\n {} {} {} {} {}'.format(row['Codigo'],row['Descripcion'],row['TipoProducto'],row['Prefix'], 'AsignacionPrefijo'))         
-
-print('\n Cantidad Codigos Automaticos: ' + str(auto))
-
-Cod1 = str(',').join([str(i) for i in codManuales])
-
-q1 = Queries.MarkingCodes(Cod1,'10203040',False, auto)
-cursor= connection.cursor()
-cursor.execute(q1)
-dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id'])
-CodDips = dpcd['id'].tolist()
-# %%
-q1 = Queries.codObj(7703742071705.0 ,'10203040')
-print(q1)
-cursor= connection.cursor()
-cursor.execute(q1)
-CodObj =  pd.DataFrame(data=cursor.fetchall(), columns=ColumnsCode)
-
-# %%
-q1 = Queries.codObj(7703742071767.0 ,'10203040')
-print(q1)
-cursor= connection.cursor()
-cursor.execute(q1)
-CodObj2 =  pd.DataFrame(data=cursor.fetchall(), columns=ColumnsCode)
-
+from administration.bussiness import codes as mcodes
+import time
 #%%
-dft = ColumnsDB.dfCodesOK()
-# %%
-Cod = CodObj.values.tolist()
-dft.loc[len(dft.index)] = Cod[0]
 
-# %%
-Codigos = [
-    {
-        "Descripcion": "Producto 6",
+import random
+Nit='10203040'
+Cantidad=100
+
+jsonPrb={"Nit":Nit,
+    "TipoProducto": 1,
+    "Username": "10203040"}
+jsonPrb['Esquemas']=[2,3,6]
+jsonPrb['Codigos']=[]
+
+for codigo in range(Cantidad):    
+    jsonPrb['Codigos'].append({
+        "Descripcion": f"Prod.Prb05-{codigo+1}",
         "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
+        "Brand":"Generico",
+        "TargetMarket":"COL",
+        "Gpc":"10001682",
         "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
         "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-        "Prefix": 77037421776
-    },
-    {
-        "Descripcion": "Producto 7",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-        "Prefix": 77037422010
-    },
-    {
-        "Descripcion": "Producto 6-1",
-        "TipoProducto": 1,
-        "Brand": "MEDSURE",
-        "TargetMarket": "COL",
-        "Gpc": "10001695",
-        "Url": "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg",
-        "State": 3,
-        "MeasureUnit": 9,
-        "Quantity": 450.0,
-        "Prefix": 77037421776
-    }]
-# %%
+        "MeasureUnit":int("{0:.0f}".format(random.uniform(1,49))),
+        "Quantity":float("{0:.2f}".format(random.uniform(1,10)))})    
 
-pref =[]
-pref.append(77037422010)
-pref.append(77037421776)
-pref.append(77037422010)
-
-Gpref = collections.Counter(pref)
-
-for p,c in Gpref.items():
-    print(p,':',c)
+# rta = mcodes.mark_codes(jsonPrb)
+# print(rta)
+with  open("D:\\PrbJson\\PruebasJsonMarcacion.json", "w+") as file:
+    json.dump(jsonPrb, file, indent=True)
 
 # %%
-import re
-regex = re.compile(
-        r'^(?:http|ftp)s?://' # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-        r'(?::\d+)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-
-# print(re.match(regex, "http://127.0.0.1:8000/codes/mark/") is not None) # True
-
-if re.match(regex, "https://google.com"):
-    print('url Valida')
-else:
-    print('url Error')
-# %%
-VALID_IMAGE_EXTENSIONS = [
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".gif",
-]
-
-def valid_url_extension(url, extension_list=VALID_IMAGE_EXTENSIONS):
-    # http://stackoverflow.com/a/10543969/396300
-    return any([url.endswith(e) for e in extension_list])     
+gtin14 = '37707007099788'
+print(gtin14)
+gtin14sinEsq = gtin14[ 1:len(gtin14) - 1]
+print(gtin14sinEsq)
+id_code = Common.CalculaDV(gtin14sinEsq)
+print(id_code)
 
 # %%
-MeasureUnit.objects.filter(id= 9)[0].id
+q1 = '''
+        SELECT 
+            ID,
+            ID_CODE_id,
+            QUANTITY
+        FROM administration_code_gtin14 acg 
+        WHERE ID_CODE_id = '{}';
+        '''.format(7707007099787)
+        
+cursor= connection.cursor()
+cursor.execute(q1)
+Gtin14Gtin13 =  dfCodesGtin14Gtin13(data=cursor.fetchall())
+cant = Gtin14Gtin13[Gtin14Gtin13['quantity']==2]
+DupGtin14 = Gtin14Gtin13[Gtin14Gtin13['id']==17707007099784]
+print(Gtin14Gtin13)
 
 # %%
-brand = Brand()
-brand.name = 'Marca1'
-brand.save()
-Brand.objects.filter(name = 'Marca1')[0].id
+cod = Code.objects.filter(id = 7707007099787).filter(state_id=2)
+cod1= Code.objects.filter(id = 7707007099787)[0].id
 
 # %%
+q1 = Queries.GetGetin14s('7707007099787')
+
+cursor= connection.cursor()
+cursor.execute(q1)
+Gtin14Gtin13 =  dfCodesGtin14s(data=cursor.fetchall())
+Gtin14DataBM = []
+
+for row_index, row in Gtin14Gtin13.iterrows():
+    Gtin14DataBM.append(
+        {
+           "IdGtin14": row['id'],
+           "IdGtinBase":row['id_code_id'],
+           "Descripcion":row['description'],
+           "Cantidad":row['quantity']
+        }
+    )

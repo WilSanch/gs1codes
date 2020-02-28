@@ -2,7 +2,7 @@ from typing import TypedDict, List
 import datetime
 from datetime import datetime, date
 import json
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range  
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise

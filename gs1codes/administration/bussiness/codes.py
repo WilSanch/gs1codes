@@ -4,17 +4,16 @@ import json
 import math
 import re
 import pandas as pd
-from datetime import date
+from typing import TypedDict, List
 from datetime import datetime
+from django.utils import timezone
+from django.db import connection, transaction, IntegrityError
 from rest_framework import serializers
-from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code,Country,AtcCategory,TextilCategory, Brand
-from administration.models.temporal import Code
+from administration.models.temporal import Code as tmpCode
 from administration.common.functions import Queries, Common
-from administration.common.constants import ProductTypeCodes, StCodes
 from administration.bussiness.models import *
 from administration.common.constants import *
-from django.db import connection, transaction
-from datetime import datetime
+from administration.models.core import ProductType,GpcCategory,MeasureUnit,Prefix,Range,Code,Country,AtcCategory,TextilCategory, Brand, Code_Gtin14,Enterprise
 
 class ProductTypeSerializer(serializers.ModelSerializer): 
   class Meta: 
@@ -75,20 +74,38 @@ def mark_codes(marcation: MarkData):
     
     # se retonara el Df con los codigos OK y el resumen de la validacion de los codigos.
     replyMarCode = Mark_Codes_fn(dfcodesMarkGroup, marcation['Nit'])
-    print(replyMarCode.Df)
-    cur = connection.cursor()
-    q1 = Queries.createCodeTemp()
-    cur.execute(q1)
-    print(replyMarCode.Df.to_dict('records'))
-    Code.objects.bulk_create(Code(**vals) for vals in replyMarCode.Df.to_dict('records'))
-    q2 =  Queries.upserCode()
-    cur.execute(q2)
+    # print(replyMarCode.Df)
+    ReplyUpdate = UpdateCodes(replyMarCode.Df)    
+    
+    CodOk = 0
+    CodError= 0
+    for rta in replyMarCode.Codes:
+        if rta['Msj'] == MarkMessages.MarkOk:
+            CodOk = CodOk + 1
+        else:
+            CodError = CodError + 1
+    
+    print('Codigos Marcados Correctamente: ' + str(CodOk) + 'Con Errores: ' + str(CodError))
+    
     return {
         "IdCodigos": replyMarCode.Codes,
-        "Respuesta": 100,
-        "MensajeUI": marcation["Nit"]
-    }  
-
+        "Respuesta": 'InsertOK',
+        "MensajeUI": 'Codigos Marcados Correctamente : ' + str(CodOk) + ' Con Errores: ' + str(CodError)
+    }
+    
+@transaction.atomic
+def UpdateCodes(df):
+    try:        
+        cur = connection.cursor()
+        q1 = Queries.createCodeTemp()
+        cur.execute(q1)
+        tmpCode.objects.bulk_create(Code(**vals) for vals in df.to_dict('records'))
+        q2 =  Queries.upsertCode()
+        cur.execute(q2)
+        return 'InsertOK'
+    except Exception as ex:
+        return ex
+    
 def codigosRepetidosfn(codigos):  
     df = pd.DataFrame(data=codigos)
     rep = df.groupby(['Codigo']).count()
@@ -238,7 +255,7 @@ def Mark_Code_fn(Code, Nit, row):
             CodObj.at[0,'description']=descriptionGtin.ProdName
             CodObj.at[0,'gln_name']=descriptionGtin.GlnName
             CodObj.at[0,'product_type_id']= ProductTypeCodes.Producto_GLN.value
-            CodObj.at[0,'assignment_date']= datetime.now()
+            CodObj.at[0,'assignment_date']= timezone.now()
             rm.Code = Code
             rm.Msj = MarkMessages.MarkOk
             rm.Row = CodObj.values.tolist()
@@ -256,7 +273,7 @@ def Mark_Code_fn(Code, Nit, row):
             validateVerified = ValidateVerified(row)
             if validateVerified.Validate == True:                
                 CodObj.at[0,'description']=row['Descripcion']
-                CodObj.at[0,'assignment_date']= datetime.now()
+                CodObj.at[0,'assignment_date']= timezone.now()
                 CodObj.at[0,'url']= row['Url']
                 CodObj.at[0,'quantity_code']= row['Quantity']
                 CodObj.at[0,'brand_id']= Brand.objects.filter(name = row['Brand'])[0].id                
@@ -284,7 +301,7 @@ def Mark_Code_fn(Code, Nit, row):
         else:
             CodObj.at[0,'state_id']=StCodes.Asignado.value
             CodObj.at[0,'description']=row['Descripcion']
-            CodObj.at[0,'assignment_date']= datetime.now()
+            CodObj.at[0,'assignment_date']= timezone.now()
             CodObj.at[0,'product_type_id']= row['TipoProducto']
             rm.Code = Code
             rm.Msj = MarkMessages.MarkOk
@@ -371,7 +388,7 @@ def MarkedCodesfn(df, Nit, TipoProducto):
         pv = True
     
     if (len(codManuales)>0) :
-        q1 = Queries.MarkingCodesManual(CodManual,Nit,pv, auto)
+        q1 = Queries.MarkingCodesManual(CodManual,Nit,pv, len(codManuales))
         cursor= connection.cursor()
         cursor.execute(q1)
         dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id'])
@@ -387,6 +404,7 @@ def MarkedCodesfn(df, Nit, TipoProducto):
             cursor.execute(q1)
             dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id'])
             CodDips = dpcd['id'].tolist()
+            #Corregir 
             rc.Prefix.append({
                 "Prefix":p,
                 "Codes":CodDips})
@@ -488,7 +506,7 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
         for code in code_list:
             new_code= Code()
             new_code.id = code
-            new_code.assignment_date = datetime.now()
+            new_code.assignment_date = timezone.now()
             new_code.prefix_id = existing_prefix.id
             new_code.state_id = StCodes.Asignado.value
             new_code.product_type_id = product_type
@@ -499,11 +517,9 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
     for code in code_list:
         new_code= Code()
         new_code.id = code
-        new_code.assignment_date = datetime.now()
+        new_code.assignment_date = timezone.now()
         new_code.prefix_id = prefix.id
         new_code.state_id = StCodes.Asignado.value
-        new_code.product_type_id = product_type
-
         bulk_code.append(new_code)
 
 
@@ -511,5 +527,100 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
       Code.objects.bulk_create(bulk_code)
 
     return ""
-  except IntegrityError:
+  except Exception as ex:
     return "No fue posible insertar los códigos."
+
+def RegistryGtin14(gtin14AsignacionRequest: Gtin14AsignacionRequest):
+    '''
+    Registra in Gtin14 basesandose en la reglas establecidas por el estandar.
+    '''
+    idEnterprise = Enterprise.objects.filter(identification = gtin14AsignacionRequest['nit'])[0].id
+    GTIN14_SINESQUEMA = Common.CalculaDV(str(gtin14AsignacionRequest['idGtin14'])[ 1:len(str(gtin14AsignacionRequest['idGtin14'])) - 1])
+    valGtin14 = validaGtin14(GTIN14_SINESQUEMA,idEnterprise)
+    
+    if valGtin14 ==1 :
+        q1 = Queries.GetGtin14byGtin13(gtin14AsignacionRequest['idGtin13'])
+        cursor= connection.cursor()
+        cursor.execute(q1)
+        Gtin14Gtin13 =  dfCodesGtin14Gtin13(data=cursor.fetchall())
+        if len(Gtin14Gtin13)< 9:
+            cantGtin14 = Gtin14Gtin13[Gtin14Gtin13['quantity']==gtin14AsignacionRequest['cantidad']]
+            if len(cantGtin14)==1:
+                return { "Response": Gtin14Messages.CantDuplicada}
+            else:
+                DupGtin14 = Gtin14Gtin13[Gtin14Gtin13['id']==gtin14AsignacionRequest['idGtin14']]
+                if len(DupGtin14)==1:
+                    return { "Response": Gtin14Messages.Gtin14Duplicado}
+                else:
+                    MarkedGtin13 = Code.objects.filter(id = gtin14AsignacionRequest['idGtin13']).filter(state_id= StCodes.Asignado.value).count()
+                    if MarkedGtin13 == 1:
+                        DvGtin14= Common.CalculaDV(str(gtin14AsignacionRequest['idGtin14'])[:len(str(gtin14AsignacionRequest['idGtin14'])) - 1])
+                        if DvGtin14 == str(gtin14AsignacionRequest['idGtin14']):    
+                            gtin14 = Code_Gtin14()
+                            gtin14.id = gtin14AsignacionRequest['idGtin14']
+                            gtin14.id_code_id = gtin14AsignacionRequest['idGtin13']
+                            gtin14.description = gtin14AsignacionRequest['descripcion']
+                            gtin14.quantity = gtin14AsignacionRequest['cantidad']
+                            gtin14.state_id = StCodes.Asignado.value
+                            gtin14.save()
+                            return { "Response": gtin14AsignacionRequest['idGtin14']}
+                        else:
+                            return { "Response": Gtin14Messages.DvGtin14}
+                    else:
+                        return { "Response": Gtin14Messages.Gtin13NotMark}
+        else:
+            return { "Response": Gtin14Messages.Gtin14Cant}
+    else:
+        return { "Response": Gtin14Messages.Gtin14NoEnterprise}
+    
+def validaGtin14(GTIN14_SINESQUEMA,idEnterprise):
+    q1 = Queries.validateGtin14(GTIN14_SINESQUEMA,idEnterprise)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    ExisteGtin = cursor.fetchone()
+    return ExisteGtin[0]
+
+def GetGtin14sbyGtin13(gtinBase):
+    q1 = Queries.GetGetin14s(gtinBase)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    Gtin14Gtin13 =  dfCodesGtin14s(data=cursor.fetchall())
+    Gtin14DataBM = {}
+    Gtin14DataBM['Codigos']=[]
+    for row_index, row in Gtin14Gtin13.iterrows():
+        Gtin14DataBM['Codigos'].append(
+            {
+            "IdGtin14": row['id'],
+            "IdGtinBase":row['id_code_id'],
+            "Descripcion":row['description'],
+            "Cantidad":row['quantity']
+            }
+        )
+    return Gtin14DataBM
+
+def ListGetGtin14sGtin13(ListGtin13 :listGtin13):
+    CodGtin13s = str(',').join([str(i) for i in ListGtin13['ListGtin13']])    
+    q1 = Queries.GetGetin14sList(CodGtin13s)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    Gtin14Gtin13 =  dfCodesGtin14s(data=cursor.fetchall())
+    Gtin14DataBM = {}
+    Gtin14DataBM['Codigos']=[]
+    for row_index, row in Gtin14Gtin13.iterrows():
+        Gtin14DataBM['Codigos'].append(
+            {
+            "IdGtin14": row['id'],
+            "IdGtinBase":row['id_code_id'],
+            "Descripcion":row['description'],
+            "Cantidad":row['quantity']
+            }
+        )
+    return Gtin14DataBM
+
+def ListRegistryGTIN14(request : List[Gtin14AsignacionRequest]):
+    json={}
+    json['Request'] =[]
+    for gtin14 in request:
+        res = RegistryGtin14(gtin14)
+        json['Request'].append(res)
+    return json

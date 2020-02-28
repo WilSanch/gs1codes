@@ -103,3 +103,12 @@ class ReplyMarCode(TypedDict):
     Codes: List[object]
     Df: object
 
+class Gtin14AsignacionRequest(TypedDict):
+    idGtin13: int
+    idGtin14: int
+    descripcion: str
+    cantidad: int
+    nit: str
+    
+class listGtin13(TypedDict):
+    gtin13s: List[int]

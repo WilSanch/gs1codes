@@ -201,7 +201,7 @@ class Queries():
         '''
         return query
 
-    def upserCode():
+    def upsertCode():
         query='''
             insert into administration_code
                 (
@@ -267,6 +267,53 @@ class Queries():
         '''
         return query
     
+    def validateGtin14(GTIN14_SINESQUEMA,idEnterprise):
+        q1 = '''
+            SELECT COUNT(ID) as Cant
+            FROM administration_prefix ap 
+            WHERE ap.id =
+            (
+                SELECT prefix_id FROM administration_code ac WHERE ID = '{}'
+            )
+            AND ap.enterprise_id = {};
+        '''.format(GTIN14_SINESQUEMA,idEnterprise)
+        return q1
+    
+    def GetGtin14byGtin13(Gtin13):
+        q1 = '''
+        SELECT 
+            ID,
+            ID_CODE_id,
+            QUANTITY
+        FROM administration_code_gtin14 acg 
+        WHERE ID_CODE_id = '{}';
+        '''.format(Gtin13)
+        return q1
+    
+    def GetGetin14s(Gtin13):
+        q1 = '''
+        SELECT 
+            ID,
+            ID_CODE_id,
+            DESCRIPTION,
+            QUANTITY
+        FROM administration_code_gtin14 acg 
+        WHERE ID_CODE_id = '{}';
+        '''.format(Gtin13)
+        return q1
+    
+    def GetGetin14sList(Gtin13s):
+        q1 = '''
+        SELECT 
+            ID,
+            ID_CODE_id,
+            DESCRIPTION,
+            QUANTITY
+        FROM administration_code_gtin14 acg 
+        WHERE ID_CODE_id in ({})
+        ORDER BY 2;
+        '''.format(Gtin13s)
+        return q1
 class Common():
     
     def CalculaDV(Gtin):

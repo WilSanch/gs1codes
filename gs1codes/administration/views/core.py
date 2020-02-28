@@ -2,7 +2,7 @@ import json
 from django.http import HttpResponse, JsonResponse
 from administration.bussiness.prefix import activation,Test,inactivation
 from rest_framework import generics
-from administration.bussiness.codes import mark_codes, get_gpc_category, ProductTypeSerializer, GpcCategorySerializer, MeasureUnitsSerializer
+from administration.bussiness.codes import *
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
 from django.views.decorators.csrf import csrf_exempt
 
@@ -52,3 +52,28 @@ def get_gpc(request):
   if request.method == 'POST':
     json_data = json.loads(request.body)
     return JsonResponse(get_gpc_category(json_data))
+
+def RegistrarGTIN14(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body)
+    return JsonResponse(RegistryGtin14(json_data))
+  
+
+def GetGtin14s(request):
+  if request.method == 'GET':
+    if('Gtin' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    else:
+      Gtin = request.GET['Gtin']
+      return JsonResponse(GetGtin14sbyGtin13(Gtin))
+  
+def ListGetGtin14s(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body)
+    return JsonResponse(ListGetGtin14sGtin13(json_data))
+  
+
+def ListRegistrarGTIN14(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body)
+    return JsonResponse(ListRegistryGTIN14(json_data))

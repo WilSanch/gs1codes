@@ -59,7 +59,13 @@ class MarkMessages():
     ErrorMeasureUnit= "MeasureUnit vacia o incorrecta"
     ErrorUrl = "Url invalida o extension de imagen incorrecta"
        
-    
+class Gtin14Messages():
+    CantDuplicada = "YA EXISTE OTRO GTIN14 PARA EL GTIN13 CON LA MISMA CANTIDAD"
+    Gtin14Duplicado = "GTIN14 DUPLICADO"    
+    DvGtin14 = "DIGITO DE VERIFICACION DEL GTIN14 ERRONEO"
+    Gtin13NotMark = "EL GTIN13 NO SE ENCUENTRA ASIGNADO"
+    Gtin14Cant = "CANTIDAD DE CODIGOS MAYOR A 9"
+    Gtin14NoEnterprise = "Error Gtin14 no pertenece a la empresa"
 
 class ProductType():
     Producto = 1
@@ -151,6 +157,19 @@ ColumnsCode = [
     'textil_category_id' 
 ]
 
+ColummnsGtin14Gtin13=[
+    'id',
+    'id_code',
+    'quantity'
+]
+
+ColummnsGtin14s=[
+    'id',
+    'id_code_id',
+    'description',
+    'quantity'
+]
+
 VALID_IMAGE_EXTENSIONS = [
     ".jpg",
     ".jpeg",
@@ -167,6 +186,12 @@ regexUrl = re.compile(
 
 def dfCodesOK(data=None):
     return pd.DataFrame(data=data, columns = ColumnsCode)
+
+def dfCodesGtin14Gtin13(data=None):
+    return pd.DataFrame(data=data, columns = ColummnsGtin14Gtin13)
+
+def dfCodesGtin14s(data=None):
+    return pd.DataFrame(data=data, columns = ColummnsGtin14s)
 
 def valid_url_extension(url, extension_list=VALID_IMAGE_EXTENSIONS):
     return any([url.endswith(e) for e in extension_list])  
