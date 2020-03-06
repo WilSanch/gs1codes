@@ -1,6 +1,6 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from administration.bussiness.prefix import activation,Test,inactivation,assignate_prefix
+from administration.bussiness.prefix import activation,Test,inactivation,assignate_prefix,prefix_regroup,code_transfer
 from rest_framework import generics
 from administration.bussiness.codes import mark_codes, get_gpc_category, ProductTypeSerializer, GpcCategorySerializer, MeasureUnitsSerializer
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
@@ -47,6 +47,18 @@ def assignate(request):
     json_data = json.loads(request.body) 
     
     return JsonResponse(assignate_prefix(json_data))
+
+def regroup(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(prefix_regroup(json_data))
+
+def transfer(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(code_transfer(json_data))
 
 def test(request):
   if request.method == 'POST':

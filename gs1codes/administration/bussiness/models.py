@@ -1,5 +1,6 @@
 from typing import TypedDict, List
-from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType
+from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType, TransferProcess
+from datetime import datetime
 
 class MarkedCode(TypedDict):
     """
@@ -61,7 +62,7 @@ class RequestCodes(TypedDict):
     Prefix : List[ListPrefix]
 
 class PrefixId(TypedDict):
-    Id: str
+    Id: int
     Range: int
 
 class ActivationInactivationBM(TypedDict):
@@ -103,3 +104,14 @@ class ReplyMarCode(TypedDict):
     Codes: List[object]
     Df: object
 
+class RegroupBM(TypedDict):
+    Nit: str
+    Prefixes: List[PrefixId]
+    ContractMigrationDate: datetime
+
+class CodeTransfer(TypedDict):
+    OriginNit: str
+    DestinationNit: str
+    Process: TransferProcess
+    Prefixes: List[PrefixId]
+    Observation: str
