@@ -122,7 +122,7 @@ def prefix_regroup(data: RegroupBM) -> MarkCodeRespose:
                         }
 
         return {
-            "MensajeUI": "Proceso de reagrupación completado correctamente",
+            "MensajeUI": "Proceso completado correctamente",
             "Respuesta": 200
             }    
 
@@ -155,7 +155,7 @@ def prefix_transfer(data: CodeTransfer):
                         }
                 else:
                     return {
-                        "MensajeUI": "Proceso de reagrupación completado correctamente",
+                        "MensajeUI": "Proceso completado correctamente",
                         "Respuesta": 200
                         }    
 
@@ -200,7 +200,7 @@ def prefix_refund(data: PrefixRefund):
             enterprise.save()
             
         return {
-            "MensajeUI": "Proceso de devolución completado correctamente",
+            "MensajeUI": "Proceso completado correctamente",
             "Respuesta": 200
             }    
 
@@ -220,7 +220,7 @@ def masive_update_validity_date(validity_date: datetime):
                 schema.save()
         
         return {
-            "MensajeUI": "Proceso de devolución completado correctamente",
+            "MensajeUI": "Proceso completado correctamente",
             "Respuesta": 200
             }
     except Exception as e:
