@@ -392,13 +392,13 @@ class Common():
         select id, min(available_quantity) as available_quantity 
         from 
         (
-            select C.quantity_code - Count(B.id) as available_quantity, A.id
+            select C.quantity_code - Count(B.id) as available_quantity, A.id, A.state_id
             From administration_prefix A
             left join administration_code B on A.id = B.prefix_id 
             inner join administration_range C on A.range_id = C.id 
             group by  A.id, C.quantity_code
         ) a
-        where available_quantity >= {}
+        where available_quantity >= {} and state_id = 2
         group by id
         
         '''.format(required_quantity)

@@ -115,3 +115,8 @@ class CodeTransfer(TypedDict):
     Process: TransferProcess
     Prefixes: List[PrefixId]
     Observation: str
+
+class PrefixRefund(TypedDict):
+    Prefixes: PrefixId
+    nit: str
+    Observation: str
