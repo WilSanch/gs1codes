@@ -130,3 +130,8 @@ class Gtin14AsignacionRequest(TypedDict):
     
 class listGtin13(TypedDict):
     gtin13s: List[int]
+    
+class responseValidateExcel(TypedDict):
+    valid: bool
+    msj: str
+    data: object

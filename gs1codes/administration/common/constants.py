@@ -181,6 +181,27 @@ VALID_IMAGE_EXTENSIONS = [
     ".gif",
 ]
 
+ColummnsGtin14byNit=[
+    'id',
+    'description',
+    'quantity'
+    'id_code_id',
+    'state',
+]
+
+ColumnsExcel=[
+    'Gtin',
+    'GtinPadre',
+    'DescripcionLarga',
+    'TipoProducto',
+    'Marca',
+    'CantidadEnvase',
+    'UnidadMedida',
+    'CategoriaLogyca',
+    'MercadoObjetivo',
+    'UrlImagen',
+    'EstadoProducto'    
+]
 regexUrl = re.compile(
         r'^(?:http|ftp)s?://' # http:// or https://
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...

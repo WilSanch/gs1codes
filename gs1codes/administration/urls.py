@@ -30,5 +30,10 @@ urlpatterns = [
     # path("pt/", ptcreate.as_view(), name="pt_create"),
     path("GetCategoriesGPC/", GetCategoriesGPC.as_view(), name="GetCategoriesGPC"),
     path("GetMeasureUnits/", GetMeasureUnits.as_view(), name="GetMeasureUnits"),
+    path('ejemplo/', views.ejemplo, name='ejemplo'),
+    path('nit1/', views.nit1, name='nit1'),
+    path('report/', views.report, name='report'),
+    path('PowerBI/', views.reportPowerBI, name='PowerBI'),
+    path('Cargue/', views.cargue, name='Cargue'),
     path('swagger-docs/', schema_view),
 ]

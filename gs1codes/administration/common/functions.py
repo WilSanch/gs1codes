@@ -363,6 +363,27 @@ class Queries():
         ORDER BY 2;
         '''.format(Gtin13s)
         return q1
+    
+    def getGtinbyNit(Nit):
+        q1='''
+        select 
+            g14.id,
+            g14.description,
+            g14.quantity,
+            g14.id_code_id,
+            st.description as state
+        from administration_code_gtin14 as g14
+            inner join administration_code as code
+                on g14.id_code_id = code.id 
+            inner join administration_prefix as pref
+                on code.prefix_id = pref.id
+            inner join administration_enterprise as ent 
+                on pref.enterprise_id = ent.id 
+            inner join administration_state as st
+                on st.id = g14.state_id 
+        where ent.identification ='{}'
+        '''.format(Nit)
+        return q1
 class Common():
     
     def CalculaDV(Gtin):
