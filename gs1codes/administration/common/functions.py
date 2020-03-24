@@ -2,6 +2,7 @@ import random
 from administration.models.core import Range,Prefix,Code
 from django.db import models, connection
 from administration.common.constants import StCodes, Ranges
+from datetime import datetime
 
 class Queries():
     # def __init__(self):
@@ -267,6 +268,54 @@ class Queries():
         '''
         return query
     
+
+    def PrefixToCreateFromRegroup(prefix_id,range_id):
+        query = '''
+                select Substring(CAST(ID AS Varchar(20)), 1, 11) As id, 
+                        Max(case when assignment_date != null then assignment_date else null end) as assignment_date, 
+                        Max(case when state_id = 2 or state_id = 9 then 1 else 0 end) As assigned
+                from administration_code ac 
+                where prefix_id = {} and range_id = {}
+                group by Substring(CAST(ID AS Varchar(20)), 1, 11) 
+            '''.format(prefix_id, range_id)
+        return query
+
+    def CodeRegroupUpdate(prefix_array,range_id):
+        query = '''
+                update administration_code 
+                set prefix_id = b.id,
+                    range_id = {}
+                from administration_code a 
+                inner join 
+                (
+                    select  a.id, id_prefix
+                    from administration_prefix a
+                    inner join 
+                    (
+                        select unnest(array{}) as id
+                    ) b on a.id_prefix = cast(b.id as bigint) and a.range_id = {}
+                ) b on Substring(CAST(a.id AS Varchar(20)), 1, 11) = cast(b.id_prefix as varchar(13))
+                '''.format(range_id,prefix_array,range_id)
+        return query
+
+    def CodeRegroupDelete(prefix_array,range_id):
+        query = '''
+                with codes as 
+                    (
+                        select  cast(b.id as varchar(13)) as id_prefix
+                        from administration_prefix a
+                        inner join 
+                        (
+                            select unnest(array{}) as id
+                        ) b on a.id_prefix = cast(b.id as bigint) and a.range_id = {} and state_id = 12
+                    )
+                delete from administration_code a 
+                using codes b
+                where Substring(CAST(a.id AS Varchar(20)), 1, 11) = b.id_prefix and state_id = 1
+                '''.format(prefix_array,range_id)
+        return query
+
+    
     def validateGtin14(GTIN14_SINESQUEMA,idEnterprise):
         q1 = '''
             SELECT COUNT(ID) as Cant
@@ -364,7 +413,7 @@ class Common():
         else:
             quantity_code= quantity
 
-        ceros= len(str(quantity_code))-1
+        ceros= len(str(cat.quantity_code))-1
 
         all_code_list = []
 
@@ -392,13 +441,13 @@ class Common():
         select id, min(available_quantity) as available_quantity 
         from 
         (
-            select C.quantity_code - Count(B.id) as available_quantity, A.id
+            select C.quantity_code - Count(B.id) as available_quantity, A.id, A.state_id
             From administration_prefix A
             left join administration_code B on A.id = B.prefix_id 
             inner join administration_range C on A.range_id = C.id 
             group by  A.id, C.quantity_code
         ) a
-        where available_quantity >= {}
+        where available_quantity >= {} and state_id = 2
         group by id
         
         '''.format(required_quantity)
@@ -408,3 +457,11 @@ class Common():
         spv = cursor.fetchone()
         
         return spv[0]
+    
+    def addYears(date_to_add: datetime, years):
+        try:
+        #Devuelve el mismo dia del año correspondiente
+            return date_to_add.replace(year = date_to_add.year + years)
+        except ValueError:
+        #Si no es el mismo día, retornará otro, es decir, del 29 de febrero al 1 de marzo, etc.
+            return date_to_add + (date(date_to_add.year + years, 1, 1) - date(date_to_add.year, 1, 1))

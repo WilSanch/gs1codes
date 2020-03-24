@@ -1,6 +1,6 @@
 import json
 from django.http import HttpResponse, JsonResponse
-from administration.bussiness.prefix import activation,Test,inactivation
+from administration.bussiness.prefix_api import activation,inactivation,assignate_prefix,prefix_regroup,prefix_transfer,prefix_refund,masive_update_validity_date
 from rest_framework import generics
 from administration.bussiness.codes import *
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
@@ -42,11 +42,35 @@ def inactivate(request):
     
     return JsonResponse(inactivation(json_data))
 
-def test(request):
+def assignate(request):
   if request.method == 'POST':
     json_data = json.loads(request.body) 
     
-    return JsonResponse(Test(json_data))
+    return JsonResponse(assignate_prefix(json_data))
+
+def regroup(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(prefix_regroup(json_data))
+
+def transfer(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(prefix_transfer(json_data))
+
+def refund(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(prefix_refund(json_data))
+
+def update_validity_date(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body) 
+    
+    return JsonResponse(masive_update_validity_date(json_data))
   
 def get_gpc(request):
   if request.method == 'POST':

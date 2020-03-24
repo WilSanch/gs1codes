@@ -1,0 +1,52 @@
+{% extends 'administration/base.html' %}
+{% block title%}Report PowerBI{% endblock %}
+{% block content %}
+<h5 class="center">Reporte PowerBI</h5>
+<div class="row">
+    <div class="input-field col s12">
+      <input disabled value="{{ token }}" id="token1" type="text" class="validate">
+      <label for="disabled">Token Report</label>
+    </div>
+</div>
+<div class="row">
+    <div class="input-field col s12">
+      <input disabled value="{{ rptUrl }}" id="rptUrl1" type="text" class="validate">
+      <label for="disabled">Report Url</label>
+    </div>
+</div>
+<div class="row">
+    <div class="input-field col s12">
+      <input disabled value="{{ rptId }}" id="rptId1" type="text" class="validate">
+      <label for="disabled">Report Id</label>
+    </div>
+</div>
+<div id="embedContainer" style="height:500px !important;"></div>
+</br>
+{% endblock %}
+{% block JsPage %}
+<script>
+    debugger;
+    var accessToken = $('#token1').val();
+    var embedUrl = decodeURI($('#rptUrl1').val());    
+    var embedReportId = $('#rptId1').val();
+
+    var models = window['powerbi-client'].models;    
+    // You can find more information at https://github.com/Microsoft/PowerBI-JavaScript/wiki/Embed-Configuration-Details.
+    var config = {
+        type: 'report',
+        tokenType: models.TokenType.Embed,
+        accessToken: accessToken,
+        embedUrl: embedUrl,
+        id: embedReportId,
+        permissions: models.Permissions.All,
+        settings: {
+            filterPaneEnabled: false,
+            navContentPaneEnabled: true
+        }
+    };
+    debugger;
+    var embedContainer = document.getElementById('embedContainer');
+    // Embed the report and display it within the div container.
+    var report = powerbi.embed(embedContainer, config);
+</script>
+{% endblock %}

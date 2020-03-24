@@ -1,0 +1,65 @@
+{% extends 'administration/base.html' %}
+{% block title%}Report{% endblock %}
+{% block content %}
+  
+<!--
+<div class="input-field col s6">
+  <h5>Brands:</h5>
+  {% for brand in brand_list %}
+  <div class="chip">
+    {{ brand.name }}
+  </div>
+  {% endfor %}      
+</div>
+-->
+<h5 class="center">Reporte Gtin14</h5>
+<input type="text" id="mySearch" placeholder="Texto de Busqueda">
+<table id="myTable" class="table striped" style="width:100%">
+    <thead>
+        <tr>
+            <th>Gtin14</th>
+            <th>Gtin13</th>
+            <th>Descripcion</th>
+            <th style="width:10%">Cantidad Contenida</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in gtin14s_list %}
+        <tr>
+            <td>{{item.0}}</td>
+            <td>{{item.3}}</td>
+            <td>{{item.1}}</td>
+            <td>{{item.2}}</td>
+            <td>{{item.4}}</td>
+            <td>
+              <a class="waves-effect waves-light btn modal-trigger" href="#"><i class="material-icons center">assignment_turned_in</i></a>
+              <!--
+              <a class="waves-effect waves-light btn red"><i class="material-icons center">delete</i></a>
+              <a class="waves-effect waves-light btn"><i class="material-icons center">edit</i></a>
+              -->
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block JsPage%}
+<script>
+debugger;
+var table = $('#myTable').DataTable({
+  dom: 'B<"clear">rtip',
+  pageLength: 5,
+  buttons: {
+    name: 'primary',
+    buttons: ['csv', 'excel', 'pdf']
+  }
+});
+
+$('#mySearch').keyup(function () {
+  table.search($('#mySearch').val()).draw();
+});
+</script>
+{% endblock%}

@@ -135,6 +135,10 @@ class ProducState(Enum):
     Inactivo = 2
     En_Desarrollo = 3
 
+class TransferProcess(Enum):
+    Total = 1
+    Parcial = 2
+
 ColumnsCode = [
     'id',
     'alternate_code',

@@ -1,0 +1,10 @@
+{% extends 'administration/base.html' %}
+{% load material_form %}
+{% block content %}
+<h3>Plantilla</h3>
+<form method="GET" action="/codes/nit1">
+    {% form form=form %}{% endform %}
+    <button type="submit" class="btn">Submit</button>
+
+</form>
+{% endblock %}

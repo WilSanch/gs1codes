@@ -1,0 +1,6 @@
+{% extends 'administration/base.html' %}
+{% block title%}Logout{% endblock %}
+{% block content %}
+<p>Sesion Cerrada!</p>  
+<a href="{% url 'login'%}">Haga clic aquí para iniciar sesión nuevamente.</a>
+{% endblock %}

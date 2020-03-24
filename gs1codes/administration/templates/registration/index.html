@@ -1,0 +1,8 @@
+{% extends 'administration/base.html' %}
+{% block title%}Inicio{% endblock %}
+{% block content %}
+<h6 class="center">Inicio de Sesion </h6>
+{{user}} - Autenticado : {{ user.is_authenticated }} - Perfil Staff: {{user.is_staff}}
+<br>
+<p>Bienvenido : {{ user.get_username }}</p>
+{% endblock %}

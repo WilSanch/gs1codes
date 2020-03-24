@@ -1,0 +1,76 @@
+{% extends 'administration/base.html' %}
+{% block title%}Excel{% endblock %}
+{% block content %}  
+<h5 class="center">Cargue Portafolio</h5>
+<form id="carguePortafolio" action="/codes/Cargue/" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file"
+           title="Upload excel file"
+           name="excel_file"
+           required="required"
+           class="file-field input-field btn">
+    <p>
+    <input id="valida" type="submit"
+           value="Cargar Archivo"
+           class="btn">
+</form>
+<p></p>
+<hr>
+<input id="error" type="hidden" value="{{ Error }}">
+
+<table id="myTable2" class="table striped" style="width:100%">
+    <thead>
+        <tr>
+            {% for row in excel_data_head %}
+            <th>
+            {{ row }}
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in excel_data %}
+        <tr>
+            {% for cell in row %}
+                <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}   
+    </tbody>
+</table>
+{% endblock %}
+
+{% block JsPage%}
+<script>
+
+debugger;
+
+/*$('#carguePortafolio').submit(function(e){
+    e.preventDefault();
+    $.ajax({
+        url: $(this).attr('action'),
+        type: $(this).attr('method'),
+        data: $(this).serialize(),
+        success: function(json){
+            console.log(json);
+        }
+    })
+}) */
+
+var msj = $('#error').val();
+console.log(msj);
+if(msj.length > 0)
+{
+    M.toast({ html: msj, classes: 'rounded Orangelogyca' })
+}
+
+$('#myTable2').DataTable({
+    dom: 'B<"clear">rtip',
+    pageLength: 50,
+    buttons: {
+        name: 'primary',
+        buttons: ['csv', 'excel']
+    }
+});
+</script>
+{% endblock%}

@@ -26,23 +26,30 @@ def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise):
     enterprise.code_quantity_consumed = 0 if enterprise.code_quantity_consumed == None else enterprise.code_quantity_consumed
 
     if (ac.Quantity <= enterprise.code_residue):
-        enterprise.code_residue += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
-        enterprise.code_quantity_purchased += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
-        enterprise.code_quantity_reserved += ac.Quantity
-        enterprise.code_residue -= ac.Quantity
+        if (enterprise.code_residue == 0):
+            enterprise.code_residue += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
+            enterprise.code_quantity_purchased += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
+            enterprise.code_quantity_reserved += ac.Quantity
+            enterprise.code_residue -= ac.Quantity
 
-        enterprise.code_residue -= ac.Quantity
-        enterprise.code_quantity_reserved += ac.Quantity
+            enterprise.code_residue -= ac.Quantity
+            enterprise.code_quantity_reserved += ac.Quantity
+        else:
+            enterprise.code_residue -= ac.Quantity
+            enterprise.code_quantity_reserved += ac.Quantity
     else:
-        if (len(str(ac.Quantity)) > 1):
-            if ((ac.Quantity - enterprise.code_residue) % 10 == 0):
-                purchased = ac.Quantity - enterprise.code_residue
-            else:
+        if (len(str(ac.Quantity)) >= 1):
+            if (enterprise.code_quantity_purchased==0):
                 purchased = int(str(1).ljust(len(str(ac.Quantity - enterprise.code_residue)) + 1, '0'))
+            else:
+                if ((ac.Quantity - enterprise.code_residue) % 10 == 0):
+                    purchased = ac.Quantity - enterprise.code_residue
+                else:
+                    purchased = int(str(1).ljust(len(str(ac.Quantity - enterprise.code_residue)) + 1, '0'))
         else:
             purchased = ac.Quantity - enterprise.code_residue
         enterprise.code_quantity_purchased += purchased
-
+    
         reserved = ac.Quantity
         enterprise.code_quantity_reserved += reserved
 

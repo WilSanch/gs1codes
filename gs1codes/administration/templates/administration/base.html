@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewreport" content="width=device-width, initial-scañe=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{% block title %}{% endblock %} | Asignacion de Codigos</title>
+  <!--Import Google Icon Font-->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!--Import materialize.css-->
+  <link type="text/css" rel="stylesheet" href="{% static 'administration/css/materialize.min.css' %}" media="screen,projection" />
+  <!--Import Base.css-->
+  <link type="text/css" rel="stylesheet" href="{% static 'administration/css/base.css' %}" media="screen,projection" />
+  <!--DataTable
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-html5-1.6.1/cr-1.5.2/fc-3.3.0/kt-2.5.1/r-2.2.3/rg-1.1.1/rr-1.2.6/sl-1.3.1/datatables.min.css" />
+  -->
+  <link rel="stylesheet" type="text/css" href="{% static 'administration/css/datatables.min.css' %}" />
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <header>
+    <nav>
+      <div class="nav-wrapper GrayGs1 sticky-top">
+        <div class="row">
+          <div class="col s12">
+            <a href="#" data-target="sidenav-1" class="left sidenav-trigger hide-on-medium-and-up"><i
+              class="material-icons blue-text text-darken-4">menu</i></a>
+            <!--
+            <a href="#" data-target="sidenav-2" class="right sidenav-trigger show-on-medium-and-up"><i
+              class="material-icons">settings</i></a>
+            -->
+            <a href="#" class="brand-logo black-text right">
+              <img src="{% static 'administration/img/Logo_GS1-LOGYCA.png' %}" style="height: 70px;" alt=""></a>
+            <a href="#" style="color: #1F1F78;" class="brand-logo BlueGs1">
+              Plataforma Asignacion de Codigos</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <!-- LEFT SIDEBAR	 -->
+  <ul id="sidenav-1" class="sidenav sidenav-fixed GrayGs1">
+    <li>
+      <div class="user-view Orangelogyca">
+        <a href="#">
+          <img src="{% static 'administration/img/usuario.png' %}" class="circle" alt="">
+        </a>
+        <a href="#">
+          <span class="name white-text">{{ request.user.get_username|title }}</span>
+        </a>
+        <a href="#">
+          <span class="email white-text">{{ request.user.email }}</span>
+        </a>
+      </div>
+    </li>
+    {% if user.is_authenticated %}
+    <li class="GrayGs1">
+      <ul class="collapsible collapsible-accordion">
+        <li>
+          <a class="collapsible-header waves-effect waves-blue blue-text text-darken-4"><i
+              class="material-icons blue-text text-darken-4">business_center</i>Administración<i class="material-icons right blue-text text-darken-4"
+              style="margin-right:0;">arrow_drop_down</i></a>
+          <div class="collapsible-body">
+            <ul>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Asignación manual de
+                  prefijos</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Activar/Inactivar
+                  prefijo</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Asignar códigos</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Reagrupar prefijos</a>
+              </li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Devolución total
+                  códigos</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Cesión de códigos</a>
+              </li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Actualización masiva de
+                  vigencia</a></li>
+              <li>
+                <div class="divider"></div>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <div class="divider"></div>
+    </li>
+    <li class="GrayGs1">
+      <ul class="collapsible collapsible-accordion">
+        <li>
+          <a class="collapsible-header waves-effect waves-blue blue-text text-darken-4"><i
+              class="material-icons blue-text text-darken-4">business</i>Operaciones<i class="material-icons right blue-text text-darken-4"
+              style="margin-right:0;">arrow_drop_down</i></a>
+          <div class="collapsible-body">
+            <ul>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Cargar archivo de
+                  devolución</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Inactivación
+                  masiva de prefijos</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Empresas</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Cambiar
+                  Descripción código AD</a></li>
+              <li><a class="waves-effect waves-blue" href="{% url 'Cargue'%}"><i class="material-icons">assignment</i>Cargue portafolio
+                  miembros</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Resultado
+                  portafolio miembros</a></li>
+              <li>
+                <div class="divider"></div>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <div class="divider"></div>
+    </li>
+    <li class="GrayGs1">
+      <ul class="collapsible collapsible-accordion">
+        <li>
+          <a class="collapsible-header waves-effect waves-blue blue-text text-darken-4"><i
+              class="material-icons blue-text text-darken-4">assessment</i>Reportes<i class="material-icons right blue-text text-darken-4"
+              style="margin-right:0;">arrow_drop_down</i></a>
+          <div class="collapsible-body">
+            <ul>
+              <li><a class="waves-effect waves-blue" href="{% url 'PowerBI' %}"><i
+                    class="material-icons">receipt</i>Reporte 1</a></li>
+              <li><a class="waves-effect waves-blue" href="{% url 'report' %}"><i
+                    class="material-icons">receipt</i>Reporte 2</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">receipt</i>Reporte 3</a></li>
+              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">receipt</i>Reporte 4</a></li>
+              <li>
+                <div class="divider"></div>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <div class="divider"></div>
+    </li>
+    {% endif %} 
+    {% if user.is_authenticated %}
+        <li>
+          <a  href="{% url 'logout'%}?next={{request.path}}"
+              class="collapsible-header waves-effect waves-blue blue-text text-darken-4"><i
+              class="material-icons blue-text text-darken-4">exit_to_app</i>Cerrar Sesion</i></a>
+        </li>   
+    {% else %}
+        <li>
+          <a  href="{% url 'login'%}?next={{request.path}}"
+              class="collapsible-header waves-effect waves-blu blue-text text-darken-4"><i
+              class="material-icons blue-text text-darken-4">vpn_key</i>Iniciar Sesion</a>
+        </li>
+    {% endif %} 
+  </ul>
+
+  <!-- RIGHT SIDEBAR	 -->
+  <ul id="sidenav-2" class="sidenav">
+    <li><a class="subheader">Subheader</a></li>
+    <li><a href="https://github.com/dogfalo/materialize/" target="_blank">Github</a></li>
+    <li><a href="https://twitter.com/MaterializeCSS" target="_blank">Twitter</a></li>
+    <li><a href="http://next.materializecss.com/getting-started.html" target="_blank">Docs</a></li>
+  </ul>
+
+  <main>
+    <h6 class="center">Asignación de Codigos</h6>
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <script type="text/javascript" src="{% static 'administration/js/jquery-3.4.1.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'administration/js/materialize.min.js' %}"></script>
+  <!--PowerBI-->
+  <script type="text/javascript" src="{% static 'administration/js/powerbi.js' %}"></script>
+  <!--DataTable
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/jszip-2.5.0/dt-1.10.20/af-2.3.4/b-1.6.1/b-colvis-1.6.1/b-html5-1.6.1/cr-1.5.2/fc-3.3.0/kt-2.5.1/r-2.2.3/rg-1.1.1/rr-1.2.6/sl-1.3.1/datatables.min.js"></script>
+  -->
+  <script type="text/javascript" src="{% static 'administration/js/pdfmake.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'administration/js/vfs_fonts.js' %}"></script>
+  <script type="text/javascript" src="{% static 'administration/js/datatables.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'administration/js/DjangoAjax.js' %}"></script>
+  
+  <script>
+    $(document).ready(function () {
+      $('.sidenav').sidenav({});
+      $('.modal').modal();
+      $('.collapsible').collapsible();
+      $('#sidenav-1').sidenav({ edge: 'left' });
+      $('#sidenav-2').sidenav({ edge: 'right'});
+      $('.dropdown-trigger').dropdown();
+    });
+  </script>
+  {% block JsPage %}
+  {% endblock %}
+</body>
+
+</html>

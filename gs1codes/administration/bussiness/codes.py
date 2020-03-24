@@ -501,18 +501,26 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
     if (not existing_prefix):
         code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity)
     else:
-        code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id,enterprise.code_residue)
+        if (ac.Quantity <= enterprise.code_residue):
+            code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id,ac.Quantity)
+        else:
+            code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id,enterprise.code_residue)
         
         for code in code_list:
             new_code= Code()
             new_code.id = code
             new_code.assignment_date = timezone.now()
             new_code.prefix_id = existing_prefix.id
-            new_code.state_id = StCodes.Asignado.value
+            new_code.state_id = StCodes.Disponible.value
             new_code.product_type_id = product_type
+            new_code.range_id = existing_prefix.range_id
+            
             bulk_code.append(new_code)
 
-        code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity - enterprise.code_residue)
+        if (ac.Quantity - enterprise.code_residue<=0):
+            code_list = None
+        else:
+            code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id,ac.Quantity - enterprise.code_residue)
 
     for code in code_list:
         new_code= Code()
@@ -520,11 +528,10 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
         new_code.assignment_date = timezone.now()
         new_code.prefix_id = prefix.id
         new_code.state_id = StCodes.Asignado.value
-        bulk_code.append(new_code)
-
+            bulk_code.append(new_code)
 
     with transaction.atomic():
-      Code.objects.bulk_create(bulk_code)
+        Code.objects.bulk_create(bulk_code)
 
     return ""
   except Exception as ex:

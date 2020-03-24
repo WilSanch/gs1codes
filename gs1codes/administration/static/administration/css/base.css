@@ -1,0 +1,49 @@
+header, main, footer {
+	padding-left: 290px;
+}
+
+body{
+	font-family: "Gotham SSm A","Gotham SSm B",Verdana,sans-serif;
+	color: #5a5a5a;
+	font-size: 11px !important;
+	background-color: #F4F4F4;
+}
+
+.sidenav li > a {
+	font-size: 10px !important;
+}
+
+.sidenav {
+	width: 290px;
+}
+
+.Orangelogyca
+{
+	background-color: #F26334;
+}
+
+.GrayGs1
+{
+	background-color: #F4F4F4;
+}
+
+.BlueGs1
+{
+	color: #002C6C;
+}
+
+.Gray1Logyca
+{
+	background-color: #52534b;
+}
+
+.Gray2Logyca
+{
+	background-color: #41423a;
+}
+
+@media only screen and (max-width : 992px) {
+	header, main, footer {
+		padding-left: 0;
+	}
+}
