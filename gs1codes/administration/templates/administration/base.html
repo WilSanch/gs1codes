@@ -65,7 +65,7 @@
               style="margin-right:0;">arrow_drop_down</i></a>
           <div class="collapsible-body">
             <ul>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Asignación manual de
+              <li><a class="waves-effect waves-blue" href="{% url 'assignation'%}"><i class="material-icons">edit</i>Asignación manual de
                   prefijos</a></li>
               <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Activar/Inactivar
                   prefijo</a></li>
@@ -197,6 +197,7 @@
       $('#sidenav-1').sidenav({ edge: 'left' });
       $('#sidenav-2').sidenav({ edge: 'right'});
       $('.dropdown-trigger').dropdown();
+      $('select').formSelect();
     });
   </script>
   {% block JsPage %}

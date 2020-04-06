@@ -1,0 +1,108 @@
+{% extends 'administration/base.html' %}
+{% block content %}  
+    <form id="prefixAssignation" action="/codes/assignation/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <br><br><br>
+        <div class="row">
+            <div class="col s3">
+                <label for="nit">Nit de la empresa</label>
+                <input type="text" id="nit" name="nit" value="{{contexto.enterprise.identification}}" readonly required><br><br>
+            </div>
+            <div class="col s9">
+                <label for="name">Razón social</label>
+                <input type="text" id="name" name="name" value="{{contexto.enterprise.enterprise_name}}" readonly><br><br>
+            </div>            
+        </div>
+        <div class="row">
+            <div class="col s3">
+                <label for="quantity">(*)Códigos requeridos</label>
+                <input type="number" min="1" max="100000" id="quantity" name="quantity" value="" required>
+            </div>
+            <div class="input-field col s5">
+                <select id="schema" name="schema" required>
+                    <option value="" disabled selected>Elige una opción</option>
+                    {% for op in contexto.schemas %}
+                    <option value="{{op.id}}">{{op.description}}</option>
+                    {% endfor %}
+                </select>
+                <label>(*)Esquema de asignación</label>
+            </div>
+            <div class="col s4">
+                <label for="assignment_date">(*)Fecha de asignación</label>
+                <input type="date" id="assignment_date" name="assignment_date" value="" required>
+            </div>
+        </div>
+        <div class="row">        
+            <div class="col s12">
+                <label for="observation">(*)Observaciones</label>
+                <textarea id="observation" name="observation" class="materialize-textarea" required></textarea>
+            </div>
+        </div>
+        
+        <button class="btn waves-effect waves-light" type="submit" name="action">Asignar Códigos / Prefijo
+            <i class="material-icons right">send</i>
+        </button>
+
+        <input id="error" type="hidden" value="{{ contexto.Error }}">
+    </form>
+    
+    <br><br><br><br>
+    <h6 class="center">PREFIJOS ASIGNADOS</h6>
+    <table class="table responsive" id="myTable">
+        <thead>
+        <tr>
+            <th>Prefijo</th>
+            <th>Tipo</th>
+            <th>Esquema</th>
+            <th>Estado</th>
+            <th>Observación</th>
+            <th>Fecha asignación</th>
+            <th>Fecha vigencia</th>
+            <th>Códigos Asignados</th>
+            <th>Códigos Disponibles</th>
+        </tr>
+        </thead>
+        <tbody >
+        {% for index,row in contexto.prefix %}
+        <tr>
+            <td>{{row.id_prefix}}</td>
+            <td>{{row.type}}</td>
+            <td>{{row.schema}}</td>
+            <td>{{row.state}}</td>
+            <td>{{row.observation}}</td>
+            <td>{{row.assignment_date}}</td>
+            <td>{{row.validity_date}}</td>
+            <td>{{row.assigned}}</td>
+            <td>{{row.available}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="col-md-12 center text-center">
+	    <span class="left" id="total_reg"></span>
+        <ul class="pagination pager" id="myPager"></ul>
+    </div>
+
+    
+{% endblock %}
+
+{% block JsPage%}
+<script>
+    var msj = $('#error').val();
+    if(msj.length > 0)
+    {
+        M.toast({ html: msj, classes: 'rounded Orangelogyca' })
+    }
+    $(document).ready(function(){
+        M.textareaAutoResize($('#observation'));
+        $('#myTable').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 4,
+            buttons: {
+                name: 'primary',
+                buttons: ['excel']
+            }
+        });
+    });
+</script>
+{% endblock%}

@@ -72,7 +72,7 @@ def assignate_prefix(obj: CodeAssignation) -> MarkCodeRespose:
         ac.PrefixType = pr['PrefixType']
         ac.VariedFixedUse = pr['VariedFixedUse']
         resp = prefix_assignation(ac,id_agreement,agreement_name,user_name)
-
+        
     return {
         "MensajeUI": resp,
         "Respuesta": 200

@@ -2,11 +2,10 @@ from typing import TypedDict, List
 import datetime
 from datetime import datetime, date
 import json
-from django.db import transaction
 from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range  
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from datetime import datetime
-from django.db import connection,transaction
+from django.db import connection,transaction, IntegrityError
 from administration.models.core import Prefix,Schema,Enterprise,CodeTypeBySchemas,Range,Code
 from administration.bussiness.models import *
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise
@@ -91,6 +90,10 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             else:
                 if (quantity % 10 == 0):
                     quantity_range = quantity
+                    prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
+                    
+                    if (not prefix_range):
+                        quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
                 else:
                     quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
                 prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
@@ -143,6 +146,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             with transaction.atomic():
                 result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
 
+            
             if (create_new_prefix==True):
                 if (result != ""):
                     with transaction.atomic():
@@ -151,11 +155,14 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
 
             if (combination.give_prefix == False):
                 bought_codes = min([quantity,quantity_range])
+
             enterprise = update_totals_enterprise(ac,enterprise)
             
             with transaction.atomic():
                 enterprise.save()
-            return ""
+            
+            return "ok. Proceso completado correctamente. Se creó el prefijo: " + str(new_prefix.id_prefix)
+    
     except IntegrityError as e:
         return "No fue posible guardar el prefijo." 
 
@@ -217,13 +224,12 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
                     existing_prefix = None
             
         result = prefix_assignment(ac, enterprise, schema, False, username, combinacion, existing_prefix, process)
-        if (result != ""):
+       
+        if (result[:3] != "ok."):
             return "Se presentó un error. " + result
+        else:
+            return result
 
-        return {
-            "MensajeUI": "Pruebas realizadas correctamente",
-            "Respuesta": 200
-        }    
     except Exception as ex:
         return ex
 
@@ -378,3 +384,11 @@ def transfer(request: CodeTransfer, prefix: PrefixId):
         return total_transfer(enterpriseO, enterpriseD, request.observation, user)
     else:
         return partial_transfer(prefix, enterpriseO, enterpriseD, request.observation, user)
+
+def getPrefixesByEnterpriseId(id):
+    q1 = Queries.getPrefixesByEnterprise(id)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id_prefix','type','schema','state','observation','assignment_date','validity_date','assigned','available'])
+
+    return dpcd.iterrows
