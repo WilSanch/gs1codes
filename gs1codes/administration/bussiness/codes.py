@@ -555,8 +555,7 @@ def RegistryGtin14(gtin14AsignacionRequest: Gtin14AsignacionRequest):
     '''
     Registra in Gtin14 basesandose en la reglas establecidas por el estandar.
     '''
-    idEnterprise = Enterprise.objects.filter(
-        identification=gtin14AsignacionRequest['nit'])[0].id
+    idEnterprise = Enterprise.objects.filter(identification=gtin14AsignacionRequest['nit'])[0].id
     GTIN14_SINESQUEMA = Common.CalculaDV(str(gtin14AsignacionRequest['idGtin14'])[
                                          1:len(str(gtin14AsignacionRequest['idGtin14'])) - 1])
     valGtin14 = validaGtin14(GTIN14_SINESQUEMA, idEnterprise)

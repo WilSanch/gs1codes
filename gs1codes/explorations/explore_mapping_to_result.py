@@ -159,3 +159,100 @@ for filas in seleccion:
     print("--Final de fila--")
 
 # %%
+import requests
+from requests.auth import HTTPBasicAuth
+import json
+# All license
+apiRegitry = requests.get('https://registry-stg.gs1.org/api/v1/licenses/', auth=HTTPBasicAuth('ktabares@gs1co.org', 'd41c8e8fe68049edbe7d27af1d458fb6'))
+res= apiRegitry.content
+my_json = res.decode('utf8').replace("'", '"')
+data = json.loads(my_json)
+# %%
+# post License
+urlPost = 'https://registry-stg.gs1.org/api/v1/licenses/'
+headers = {'Content-type': 'application/json'}
+prefix = "770555"
+tipo = 'gcp'
+status = 1
+companyName = 'PrbLogycaColombia'
+dataPost1 = '''
+  "key": "{0}",
+  "type": "{1}",
+  "companyName": "{2}",
+  "licenseeGLN": null,
+  "issuerGLN": null,
+  "status": {3}
+'''.format(prefix,tipo,companyName,status)
+dataJson = "{" + dataPost1 + "}"
+apiPost = requests.post(urlPost,data = dataJson, headers = headers, auth=HTTPBasicAuth('ktabares@gs1co.org', 'd41c8e8fe68049edbe7d27af1d458fb6'))
+print(apiPost.content)
+
+# %%
+# get license
+prefix = '770999895633'
+urlGet = '''https://registry-stg.gs1.org/api/v1/licenses/gcp/{0}'''.format(prefix)
+apiRegitry = requests.get(urlGet, auth=HTTPBasicAuth('ktabares@gs1co.org', 'd41c8e8fe68049edbe7d27af1d458fb6'))
+res= apiRegitry.content
+if len(res)>0:    
+    my_json = res.decode('utf8').replace("'", '"')
+    data = json.loads(my_json)
+    print(data)
+else:
+    print('prefijo no registrado.')
+
+# %%
+# patch license
+prefix = "770555"
+tipo = 'gcp'
+status = 1
+companyName = 'PrbLogycaColombiaPatch'
+urlPost = 'https://registry-stg.gs1.org/api/v1/licenses/gcp/' + prefix
+headers = {'Content-type': 'application/json'}
+dataPost1 = '''
+  "key": "{0}",
+  "type": "{1}",
+  "companyName": "{2}",
+  "licenseeGLN": null,
+  "issuerGLN": null,
+  "status": {3}
+'''.format(prefix,tipo,companyName,status)
+dataJson = "{" + dataPost1 + "}"
+apiPatch = requests.patch(urlPost,data = dataJson, headers = headers, auth=HTTPBasicAuth('ktabares@gs1co.org', 'd41c8e8fe68049edbe7d27af1d458fb6'))
+print(apiPatch.content)
+
+# %%
+from azure.storage.blob import (
+    BlockBlobService,
+    ContainerPermissions,
+    BlobPermissions,
+    PublicAccess
+)
+import openpyxl
+try:
+    local_path = "./downloadBlob"  
+    account_name = 'archivoscodigos'
+    account_key = 'pbAL1EdRiappAAeF9T4y1DhJFT9/Bx0YpvR2CZ3x+UjEF1bfh28c+L3mDncz8jexX4/w6TUKNzMvHsXv59I7/A=='
+    container_name = 'portafolionuevoasc'
+    blob = BlockBlobService(account_name=account_name, account_key=account_key, socket_timeout=300)
+    listaArchivos = blob.list_blobs(container_name)
+    lista =[]
+    for blobf in listaArchivos:
+        nombre, extension = os.path.splitext(blobf.name)
+        blobFile = blob.get_blob_to_bytes(container_name,blobf.name)
+        download_file_path = os.path.join(local_path, blobFile.name)
+        print("\nDownloading blob to \n\t" + download_file_path)
+        with open(download_file_path, "wb") as download_file:
+            download_file.write(blobFile.content)
+        wb = openpyxl.load_workbook(download_file_path)
+        worksheet = wb["Plantilla"]
+        print(worksheet)
+except Exception as error:
+    data = {'Error message': str(error)}
+    print('data_exception::', data)
+    # return data
+
+
+# %%
+pt = ProductType.objects.filter(description='Textil')
+
+# %%

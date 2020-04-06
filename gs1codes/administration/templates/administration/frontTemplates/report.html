@@ -34,7 +34,9 @@
             <td>{{item.2}}</td>
             <td>{{item.4}}</td>
             <td>
-              <a class="waves-effect waves-light btn modal-trigger" href="#"><i class="material-icons center">assignment_turned_in</i></a>
+              <a onclick="veritem('{{item.0}}','{{item.1}}')" class="waves-effect waves-light btn modal-trigger" href="#">
+                <i class="material-icons center">assignment_turned_in</i>
+              </a>
               <!--
               <a class="waves-effect waves-light btn red"><i class="material-icons center">delete</i></a>
               <a class="waves-effect waves-light btn"><i class="material-icons center">edit</i></a>
@@ -44,11 +46,26 @@
         {% endfor %}
     </tbody>
 </table>
+ <!-- Modal Structure -->
+<div id="modal1" class="modal">
+  <div class="modal-content">
+  <h4>Modal Header</h4>
+  <div class="input-field col s6">
+    <input id="gtin14" placeholder="Placeholder" type="text" class="validate">
+    <label for="first_name">Codigo Gtin14</label>
+  </div>
+  <div class="input-field col s6">
+    <input id="descrip" type="text" class="validate">
+    <label for="last_name">Descripcion</label>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+  </div>
+</div>
 {% endblock %}
 
 {% block JsPage%}
 <script>
-debugger;
 var table = $('#myTable').DataTable({
   dom: 'B<"clear">rtip',
   pageLength: 5,
@@ -61,5 +78,14 @@ var table = $('#myTable').DataTable({
 $('#mySearch').keyup(function () {
   table.search($('#mySearch').val()).draw();
 });
+
+function veritem(gtin14,desc){
+  debugger;
+  var elem = $('#modal1');
+  var instance = M.Modal.getInstance(elem);
+  $('#gtin14').val(gtin14)
+  $('#descrip').val(desc)
+  instance.open();
+}
 </script>
 {% endblock%}

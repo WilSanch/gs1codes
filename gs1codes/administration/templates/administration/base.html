@@ -20,6 +20,11 @@
 </head>
 
 <body>
+  <div id="loader" class="loader">
+    <div class="loading">
+      <span>Cargando...</span>
+    </div>
+  </div>
   <!-- NAVBAR -->
   <header>
     <nav>
@@ -169,6 +174,7 @@
   </ul>
 
   <main>
+    
     <h6 class="center">Asignación de Codigos</h6>
     <div class="container">
       {% block content %}{% endblock %}
@@ -197,6 +203,11 @@
       $('#sidenav-1').sidenav({ edge: 'left' });
       $('#sidenav-2').sidenav({ edge: 'right'});
       $('.dropdown-trigger').dropdown();
+      $('select').formSelect();
+
+      //Deactive Loader
+      var contenedor = document.getElementById('loader');
+      contenedor.style.visibility = 'hidden';
     });
   </script>
   {% block JsPage %}

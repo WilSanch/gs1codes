@@ -1,6 +1,7 @@
 {% extends 'administration/base.html' %}
 {% block title%}Excel{% endblock %}
-{% block content %}  
+{% block content %}
+
 <h5 class="center">Cargue Portafolio</h5>
 <form id="carguePortafolio" action="/codes/Cargue/" method="post" enctype="multipart/form-data">
     {% csrf_token %}
@@ -17,45 +18,70 @@
 <p></p>
 <hr>
 <input id="error" type="hidden" value="{{ Error }}">
-
+<h6 class="center">Archivos Sin Procesar</h6>
 <table id="myTable2" class="table striped" style="width:100%">
     <thead>
         <tr>
-            {% for row in excel_data_head %}
             <th>
-            {{ row }}
+            Empresa
             </th>
-            {% endfor %}
+            <th>
+            Fecha Carga Archivo
+            </th>
         </tr>
     </thead>
     <tbody>
         {% for row in excel_data %}
         <tr>
-            {% for cell in row %}
-                <td>{{ cell }}</td>
-            {% endfor %}
+            <td>{{ row.nombre }}</td>
+            <td>{{ row.fecha }}</td>
         </tr>
-        {% endfor %}   
+        {% endfor %}
+       
     </tbody>
 </table>
+
+<form id="procesaPortafolio" action="/codes/ProcesaBlobs/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input id="valida" type="submit"
+        value="ProcesarBlob"
+        class="btn">
+    <!--<div id="loader" class="progress">
+        <div class="indeterminate"></div>
+    </div>-->
+</form>
+
 {% endblock %}
 
 {% block JsPage%}
 <script>
 
-debugger;
-
-/*$('#carguePortafolio').submit(function(e){
+$('#procesaPortafolio').submit(function(e){
     e.preventDefault();
+    var contenedor = document.getElementById('loader');
+    contenedor.style.visibility = '';
     $.ajax({
         url: $(this).attr('action'),
         type: $(this).attr('method'),
         data: $(this).serialize(),
         success: function(json){
+            debugger;
+            contenedor.style.visibility = 'hidden';
             console.log(json);
+            $('#error').val(json.mensaje);
+            var msj = $('#error').val();
+            if(msj.length > 0)
+                {
+                    M.toast({ html: msj, classes: 'rounded Orangelogyca' })
+                }
         }
     })
-}) */
+})
+
+window.onload = function(){
+    var contenedor = document.getElementById('loader');
+    contenedor.style.visibility = 'hidden';
+}
 
 var msj = $('#error').val();
 console.log(msj);
@@ -67,6 +93,7 @@ if(msj.length > 0)
 $('#myTable2').DataTable({
     dom: 'B<"clear">rtip',
     pageLength: 50,
+    "scrollX": true,
     buttons: {
         name: 'primary',
         buttons: ['csv', 'excel']

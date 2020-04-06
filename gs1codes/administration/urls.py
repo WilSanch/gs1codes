@@ -10,8 +10,6 @@ urlpatterns = [
     # ex: /polls/
     path('mark/', views.mark, name='mark_codes'),
     path('activate/', views.activate, name='prefix_activation'),
-    path('inactivate/', views.activate, name='prefix_inactivation'),
-    path('test/', views.test, name='Test'),
     path('inactivate/', views.inactivate, name='prefix_inactivation'),
     path('assignate/', views.assignate, name='prefix_assignation'),
     path('regroup/', views.regroup, name='prefix_regroup'),
@@ -19,7 +17,6 @@ urlpatterns = [
     path('refund/', views.refund, name='prefix_refund'),
     path('update_validity_date/', views.update_validity_date, name='update_validity_date'),
     path('inactivate/', views.activate, name='prefix_inactivation'),
-    path('test/', views.test, name='Test'),
     path('RegistrarGTIN14/', views.RegistrarGTIN14, name='RegistrarGTIN14'),
     path('GetGtin14s/', views.GetGtin14s, name='GetGtin14s'),
     path('ListGetGtin14s/', views.ListGetGtin14s, name='ListGetGtin14s'),
@@ -35,5 +32,6 @@ urlpatterns = [
     path('report/', views.report, name='report'),
     path('PowerBI/', views.reportPowerBI, name='PowerBI'),
     path('Cargue/', views.cargue, name='Cargue'),
+    path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
 ]
