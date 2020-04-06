@@ -384,6 +384,25 @@ class Queries():
         where ent.identification ='{}'
         '''.format(Nit)
         return q1
+
+    def getPrefixesByEnterprise(id):
+        q1='''
+            select distinct A.id_prefix, C.name as type, D.description as schema, B.description as state, 
+                    A.observation, coalesce(to_char(A.assignment_date, 'DD/MM/YYYY'), '') as assignment_date, 
+                    coalesce(to_char(A.validity_date, 'DD/MM/YYYY'), '') as validity_date, count(E.id) as assigned,
+		            C.quantity_code - count(E.id) as available 
+            From administration_prefix A
+            inner join administration_state B on A.state_id = B.id
+            inner join administration_range C on A.range_id = C.id
+            inner join administration_schema D on A.schema_id = D.id
+            inner join administration_code  E on A.id = E.prefix_id  
+            where A.enterprise_id = {}
+            group by A.id_prefix, C.name, D.description, B.description, 
+		            A.observation, A.assignment_date, A.validity_date,C.quantity_code
+            order by A.id_prefix 
+        '''.format(id)
+        return q1
+
 class Common():
     
     def CalculaDV(Gtin):
