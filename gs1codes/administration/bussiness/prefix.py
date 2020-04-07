@@ -279,6 +279,8 @@ def regroup(enterprise,migration_date,user_name,prefix_request,validity_date):
                 new_prefix.range_id = new_range
                 new_prefix.enterprise_id = enterprise.id
                 new_prefix.assignment_date = assignment_date
+                new_prefix.regrouped = 1
+                new_prefix.regrouped_parent_prefix = id_pr
 
                 if (assigned == 1):
                     new_prefix.state_id = StCodes.Asignado.value

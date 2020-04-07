@@ -496,6 +496,17 @@ class Prefix(models.Model):
     Observacion
     """
     
+    regrouped = models.IntegerField(default=0,null=False,blank=False)
+    """
+    Indica si se reagrupó
+    """
+
+    regrouped_parent_prefix = models.CharField(max_length=20, blank=False, null=True)
+    """
+    prefijo del que se reagrupó
+    """
+    
+
     history = HistoricalRecords()
     
     class Meta:
