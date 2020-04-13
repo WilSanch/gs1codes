@@ -498,7 +498,7 @@ class Prefix(models.Model):
     
     regrouped = models.IntegerField(default=0,null=False,blank=False)
     """
-    Indica si se reagrupó
+    Indica si se reagrupó llll
     """
 
     regrouped_parent_prefix = models.CharField(max_length=20, blank=False, null=True)
