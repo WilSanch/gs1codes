@@ -518,11 +518,9 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
             product_type = ProductType.Recaudo.value
 
         if (not existing_prefix):
-            code_list = Common.CodeGenerator(
-                prefix.id_prefix, prefix.range_id, ac.Quantity)
+            code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id, ac.Quantity)
         else:
-            code_list = Common.CodeGenerator(
-                existing_prefix.id_prefix, existing_prefix.range_id, enterprise.code_residue)
+            code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id, ac.Quantity)
 
             for code in code_list:
                 new_code = Code()
@@ -533,8 +531,11 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
                 new_code.product_type_id = product_type
                 bulk_code.append(new_code)
 
-            code_list = Common.CodeGenerator(
-                prefix.id_prefix, prefix.range_id, ac.Quantity - enterprise.code_residue)
+            if (ac.Quantity <= enterprise.code_residue):
+                code_list = {}
+            else:
+                code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id, ac.Quantity - enterprise.code_residue)
+
 
         for code in code_list:
             new_code = Code()

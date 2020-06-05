@@ -1,0 +1,61 @@
+<h6 class="center">CÓDIGOS</h6>
+<table class="table stripped"  style="white-space: nowrap;" id="tbl_codes_table">         
+    <thead>
+        <tr>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th>Fecha de asignación</th>
+        <th></th>
+        </tr>
+    </thead>
+    <tbody >
+        {% for row in contexto.codes %}
+        <tr>
+            <td>{{row.id}}</td>
+            <td>{{row.description}}</td>
+            <td>{{row.assignment_date}}</td>
+            <td id="cntInactive">
+                {% if row.state_id == 2 %}
+                    <button class="btn-small waves-effect waves-light orange lighten-1" id="btnInactive" title="Inactivar">
+                        <i class="material-icons prefix">indeterminate_check_box</i>
+                    </button>
+                {% endif %}
+                {% if row.state_id == 3 %}
+                    <button class="btn-small waves-effect waves-light grey deep-orange" id="btnInactive" title="Activar">
+                        <i class="material-icons prefix">check_box</i>
+                    </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+<script>
+    $(document).ready(function(){
+        $('#tbl_codes_table').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 4,
+            buttons: {
+                name: 'primary',
+                buttons: ['excel']
+            }
+        });
+    });
+    
+
+    $("#tbl_codes_table").on("click", "#btnInactive", function() {
+        var currentRow=$(this).closest("tr");
+        var codeId = currentRow.find("td:eq(0)").text();
+        
+        $.ajax({
+            url: "{% url 'ajax_function_2nd_grid' %}",
+            data: {'codeid': codeId,
+                    'opc': 2},
+            success:function(result){    
+                $("#codes_table2").html("");   
+                $("#codes_table2").html(result);
+            },
+        });
+    });
+</script>
+

@@ -745,13 +745,42 @@ class Code_Gtin14(models.Model):
         return reverse("Code_Gtin14_detail", kwargs={"pk": self.pk})
 
 
-
-
-class CodeTypeByRanges(models.Model):
+class CodeType(models.Model):
+    id = models.BigAutoField(primary_key=True)
     """
     Representa el código del tipo
     """
     code_type = models.IntegerField()
+    """
+    Representa el código identificador del tipo
+    """
+    description =  models.CharField(max_length=500)
+    """
+    Representa la descripción del tipo
+    """
+    state = models.IntegerField()
+    """
+    Representa el estado del tipo
+    """
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name = _("CodeType")
+        verbose_name_plural = _("CodeTypes")
+        
+    def __str__(self):
+        return self.id
+
+    def get_absolute_url(self):
+        return reverse("CodeType_detail", kwargs={"pk": self.pk})
+
+
+class CodeTypeByRanges(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    """
+    Representa el código del tipo
+    """
+    code_type = models.ForeignKey(CodeType , on_delete=models.CASCADE, related_name="CodeType_ByRange", null=True)
     """
     Representa el código del rango
     """
@@ -771,10 +800,11 @@ class CodeTypeByRanges(models.Model):
 
 
 class CodeTypeBySchemas(models.Model):
+    id = models.BigAutoField(primary_key=True)
     """
     Representa el código del tipo
     """
-    code_type = models.IntegerField()
+    code_type = models.ForeignKey(CodeType , on_delete=models.CASCADE, related_name="CodeType_BySchema", null=True)
     """
     Representa el código del esquema
     """
@@ -795,4 +825,4 @@ class CodeTypeBySchemas(models.Model):
 
     def get_absolute_url(self):
         return reverse("CodeTypeBySchemas_detail", kwargs={"pk": self.pk})
-
+ 

@@ -1,0 +1,61 @@
+{% extends 'administration/base.html' %}
+
+{% block content %}  
+    <form id="prefixrefund" action="/codes/update_validity_date_prefix/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h6 class="center">Actualización masiva de vigencia</h6>
+        
+        <div class="row">
+            <div class="col s12">
+              <div class="card grey lighten-4">
+                <div class="card-content orange-text text-darken-4" style="text-align: justify;">
+                  <i class="material-icons prefix">info_outline</i> Este proceso se lleva a cabo sobre todos los prefijos que han sido entregados a las empresas que administran sus prefijos y cuya vigencia es el 31 de Diciembre de cada año. Recuerde que al realizar este proceso está modificando la fecha de vigencia de TODOS los prefijos que han sido asignados bajo esta modalidad y adicionalmente está cambiando la configuración de la fecha de vigencia que aplicará para los prefijos que se asignen en adelante.
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="row">
+            <p>
+                Cantidad de prefijos asignados con vigencia al 31 de diciembre:&nbsp;&nbsp;&nbsp;<b style="font-size: small;">{{contexto.prefix_count}}</b>
+            </p>
+        </div>
+
+        <div class="row">            
+            <div class="col s6">
+                <label for="actual_date">Fecha Actual Vigencia</label>
+                <input type="text" id="actual_date" name="actual_date" value="{{contexto.schema_date}}" readonly>
+            </div>
+            <div class="col s6">
+                <label for="new_date">Nueva Fecha Vigencia (*)</label>
+                <input type="text" id="new_date" name="new_date" class="datepicker" required>
+            </div>
+        </div>
+      
+        <div class="row">
+            <a class="btn waves-effect waves-light grey" href="{% url 'assignate_search_enterprise' %}?obj=2">Cambiar Empresa
+                <i class="material-icons left">arrow_back</i>
+            </a>
+            <button class="btn waves-effect waves-light Orangelogyca" type="submit" name="update">Actualizar
+                <i class="material-icons right">arrow_forward</i>
+            </button>
+        </div>
+        <div class="progress" id="progress_bar" name="progress_bar" style="display: none;">
+            <div class="determinate" style="width: 98%"></div>
+        </div>
+        <input id="error" type="hidden" value="{{ contexto.Error }}">
+    </form>
+
+
+    <br><br><br>
+{% endblock %}
+
+{% block JsPage%}
+<script>
+    var msj = $('#error').val();
+    if(msj.length > 0)
+    {
+        M.toast({ html: msj, classes: 'rounded Orangelogyca' })
+    }
+</script>
+{% endblock%}

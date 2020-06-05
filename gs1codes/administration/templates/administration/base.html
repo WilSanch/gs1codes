@@ -70,18 +70,16 @@
               style="margin-right:0;">arrow_drop_down</i></a>
           <div class="collapsible-body">
             <ul>
-              <li><a class="waves-effect waves-blue" href="{% url 'assignation'%}"><i class="material-icons">edit</i>Asignación manual de
+              <li><a class="waves-effect waves-blue" href="{% url 'assignate_search_enterprise'%}?obj=1"><i class="material-icons">edit</i>Asignación manual de
                   prefijos</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Activar/Inactivar
+              <li><a class="waves-effect waves-blue" href="{% url 'assignate_search_enterprise'%}?obj=2"><i class="material-icons">edit</i>Activar/Inactivar
                   prefijo</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Asignar códigos</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Reagrupar prefijos</a>
-              </li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Devolución total
+              <li><a class="waves-effect waves-blue" href="{% url 'assignate_search_enterprise'%}?obj=3"><i class="material-icons">edit</i>Reagrupar prefijos</a></li>
+              <li><a class="waves-effect waves-blue" href="{% url 'assignate_search_enterprise'%}?obj=4"><i class="material-icons">edit</i>Devolución códigos
                   códigos</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Cesión de códigos</a>
+              <li><a class="waves-effect waves-blue" href="{% url 'transfer_prefix'%}"><i class="material-icons">edit</i>Cesión de códigos</a>
               </li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">edit</i>Actualización masiva de
+              <li><a class="waves-effect waves-blue" href="{% url 'update_validity_date_prefix'%}"><i class="material-icons">edit</i>Actualización masiva de
                   vigencia</a></li>
               <li>
                 <div class="divider"></div>
@@ -174,8 +172,6 @@
   </ul>
 
   <main>
-    
-    <h6 class="center">Asignación de Codigos</h6>
     <div class="container">
       {% block content %}{% endblock %}
     </div>
@@ -204,7 +200,10 @@
       $('#sidenav-2').sidenav({ edge: 'right'});
       $('.dropdown-trigger').dropdown();
       $('select').formSelect();
-
+      $('.tooltipped').tooltip();
+      $('.datepicker').datepicker({ 
+            format: 'dd/mm/yyyy'
+        });
       //Deactive Loader
       var contenedor = document.getElementById('loader');
       contenedor.style.visibility = 'hidden';

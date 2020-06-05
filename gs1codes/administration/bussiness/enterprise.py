@@ -1,5 +1,5 @@
 from administration.bussiness.models import CodeAssignmentRequest
-from administration.models import Enterprise
+from administration.models import Enterprise, Range
 from django.db import models
 
 def new_enterprise(ac: CodeAssignmentRequest):
@@ -19,7 +19,7 @@ def new_enterprise(ac: CodeAssignmentRequest):
     except IntegrityError:
         return False
 
-def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise):
+def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise, obj_range: Range):
     enterprise.code_quantity_purchased = 0 if enterprise.code_quantity_purchased == None else enterprise.code_quantity_purchased
     enterprise.code_residue = 0 if enterprise.code_residue == None else enterprise.code_residue
     enterprise.code_quantity_reserved = 0 if enterprise.code_quantity_reserved == None else enterprise.code_quantity_reserved
@@ -28,7 +28,7 @@ def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise):
     if (ac.Quantity <= enterprise.code_residue):
         if (enterprise.code_residue == 0):
             enterprise.code_residue += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
-            enterprise.code_quantity_purchased += int(str(1).ljust(len(str(ac.Quantity)) + 1, '0'))
+            enterprise.code_quantity_purchased += obj_range.quantity_code
             enterprise.code_quantity_reserved += ac.Quantity
             enterprise.code_residue -= ac.Quantity
 
@@ -38,14 +38,9 @@ def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise):
             enterprise.code_residue -= ac.Quantity
             enterprise.code_quantity_reserved += ac.Quantity
     else:
+        purchased = 0
         if (len(str(ac.Quantity)) >= 1):
-            if (enterprise.code_quantity_purchased==0):
-                purchased = int(str(1).ljust(len(str(ac.Quantity - enterprise.code_residue)) + 1, '0'))
-            else:
-                if ((ac.Quantity - enterprise.code_residue) % 10 == 0):
-                    purchased = ac.Quantity - enterprise.code_residue
-                else:
-                    purchased = int(str(1).ljust(len(str(ac.Quantity - enterprise.code_residue)) + 1, '0'))
+            purchased += obj_range.quantity_code
         else:
             purchased = ac.Quantity - enterprise.code_residue
         enterprise.code_quantity_purchased += purchased

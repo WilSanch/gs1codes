@@ -2,7 +2,7 @@ from datetime import datetime
 from django.db import transaction
 from administration.models.core import Prefix,Schema,Enterprise,Range,Code
 from administration.bussiness.models import *
-from administration.common.constants import UserMessages, StCodes
+from administration.common.constants import UserMessages, StCodes, SchemaCodes
 from administration.common.functions import Common
 from administration.bussiness.prefix import prefix_activation,prefix_inactivation,prefix_assignation,regroup,transfer
 
@@ -112,7 +112,9 @@ def prefix_regroup(data: RegroupBM) -> MarkCodeRespose:
                 if (prefix_request.range_id == 6):
                     result = "No es posible reagrupar un 8D."
                 else:
-                    result = regroup(enterprise,migration_date,user_name,prefix_request,validity_date)
+                    prefix: Prefix = Prefix.objects.get(id_prefix=prefix_request.id_prefix,range_id=prefix_request.range_id,enterprise_id=enterprise.id)
+                    
+                    result = regroup(enterprise,migration_date,user_name,prefix,validity_date)
 
                 if (result != ""):
                     transaction.set_rollback(True)
@@ -209,7 +211,7 @@ def prefix_refund(data: PrefixRefund):
 
 def masive_update_validity_date(validity_date: datetime):
     try:
-        schemas = Schema.objects.exclude(validity_date=None)
+        schemas = Schema.objects.filter(id=SchemaCodes.RenovacionAnual31Diciembre.value).exclude(validity_date=None)
 
         with transaction.atomic():
             for schema in schemas:

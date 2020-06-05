@@ -1,0 +1,129 @@
+{% extends 'administration/base.html' %}
+
+{% block content %}  
+    <form id="prefixtransfer" action="" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h6 class="center">Cesion de códigos</h6>
+        
+        <div class="row">
+            <div class="col s12">
+              <div class="card grey lighten-4">
+                <div class="card-content orange-text text-darken-4" style="text-align: justify;">
+                  <i class="material-icons prefix">info_outline</i> Determine la acción que desea realizar Cesión o Fusión, recuerde que esta opción le permite realizar el proceso a nivel de códigos, para realizar el proceso sobre los servicios coloque un ticket al área de SI.
+                </div>
+              </div>
+            </div>
+        </div>
+  
+        <div class="row">
+            <div class="col s4">
+                <label for="nit">Nit de la empresa que cede (*)</label>
+                <input type="text" id="nit" name="nit" value="" required autocomplete="off">
+            </div>
+            <div class="col s8">
+                <label for="name">Razón social</label>
+                <input type="text" id="name" name="name" value="" readonly required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s4">
+                <label for="destiny_nit">Nit de la empresa que recibe (*)</label>
+                <input type="text" id="destiny_nit" name="destiny_nit" value="" required autocomplete="off">
+            </div>
+            <div class="col s8">
+                <label for="destiny_name">Razón social</label>
+                <input type="text" id="destiny_name" name="destiny_name" value="" readonly required>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col s5">
+                <select id="process" name="process" required>
+                  <option value="" disabled selected>Elige el tipo de proceso</option>
+                  <option value="1">Total</option>
+                  <option value="2">Parcial</option>
+                </select>
+                <label>Proceso (*)</label>
+              </div>
+        </div>
+        <div class="row">        
+            <div class="col s12">
+                <label for="observation">Observaciones (*)</label>
+                <textarea id="observation" name="observation" class="materialize-textarea"></textarea>
+            </div>
+        </div>
+        <input id="error" type="hidden" value="{{ contexto.Error }}">
+    </form>
+    
+    <br><hr><br>
+    <div style="white-space: nowrap; overflow-x:auto;" id="prefixTable">   
+    </div>
+    
+    <div style="white-space: nowrap;" id="codesTable">
+    </div>
+    <br><br><br>
+{% endblock %}
+
+{% block JsPage%}
+<script>
+    var msj = $('#error').val();
+    if(msj.length > 0)
+    {
+        M.toast({ html: msj, classes: 'rounded Orangelogyca' })
+    }
+
+    $(document).ready(function(){
+        M.textareaAutoResize($('#observation'));
+    });
+
+    $("#nit").change(function (e) {
+        e.preventDefault();
+        var nit = $(this).val();        
+
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'validate_nit' %}",
+            data: {"nit": nit},
+            success: function (response) {
+                $('#name').val(response["enterprise_name"])
+                
+                $("#prefixTable").html("");
+                $("#codesTable").html("");
+                $.ajax({
+                    url: "{% url 'ajax_load_prefixtable' opc=5 %}",
+                    data: {'nit': nit},
+                    success:function(result){
+                        $("#prefixTable").html(result);
+                    },
+                });
+            },
+            error: function (response) {
+                $('#name').val("")
+                $('#nit').val("")
+                alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+                $("#prefixTable").html("");
+                $("#codesTable").html("");
+            }
+        })
+    })
+
+    $("#destiny_nit").change(function (e) {
+        e.preventDefault();
+        var nit = $(this).val();        
+
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'validate_nit' %}",
+            data: {"nit": nit},
+            success: function (response) {
+                $('#destiny_name').val(response["enterprise_name"])
+            },
+            error: function (response) {
+                $('#destiny_name').val("")
+                $('#destiny_nit').val("")
+                alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+            }
+        })
+    })
+</script>
+{% endblock%}

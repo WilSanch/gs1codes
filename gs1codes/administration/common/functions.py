@@ -387,20 +387,23 @@ class Queries():
 
     def getPrefixesByEnterprise(id):
         q1='''
-            select distinct A.id_prefix, C.name as type, D.description as schema, B.description as state, 
+            select distinct A.id_prefix, C.quantity_code, C.name as type, D.description as schema, B.description as state, 
                     A.observation, coalesce(to_char(A.assignment_date, 'DD/MM/YYYY'), '') as assignment_date, 
                     coalesce(to_char(A.validity_date, 'DD/MM/YYYY'), '') as validity_date, count(E.id) as assigned,
-		            C.quantity_code - count(E.id) as available 
+                    C.quantity_code - count(E.id) as available, A.id, A.state_id, 
+                    case when C.regrouping = true then 1 else 0 end as regrouping 
             From administration_prefix A
             inner join administration_state B on A.state_id = B.id
-            inner join administration_range C on A.range_id = C.id
+            inner join administration_range C on A.range_id = C.id 
             inner join administration_schema D on A.schema_id = D.id
-            inner join administration_code  E on A.id = E.prefix_id  
+            left join administration_code  E on A.id = E.prefix_id  
             where A.enterprise_id = {}
-            group by A.id_prefix, C.name, D.description, B.description, 
-		            A.observation, A.assignment_date, A.validity_date,C.quantity_code
+            group by A.id_prefix, C.quantity_code, C.name, D.description, B.description, 
+                    A.observation, A.assignment_date, A.validity_date,C.quantity_code,
+                    A.id, A.state_id, C.regrouping 
             order by A.id_prefix 
         '''.format(id)
+    
         return q1
 
 class Common():
@@ -476,27 +479,46 @@ class Common():
         
         return result
 
-    def GetAvailablePrefix(required_quantity):
-        query='''
-        select id, min(available_quantity) as available_quantity 
-        from 
-        (
-            select C.quantity_code - Count(B.id) as available_quantity, A.id, A.state_id
-            From administration_prefix A
-            left join administration_code B on A.id = B.prefix_id 
-            inner join administration_range C on A.range_id = C.id 
-            group by  A.id, C.quantity_code
-        ) a
-        where available_quantity >= {} and state_id = 2
-        group by id
-        
-        '''.format(required_quantity)
+    def GetAvailablePrefix(required_quantity,enterprise_id,prefix_id):
+        if (prefix_id == 0 or prefix_id == None):
+            query='''
+            select id, min(available_quantity) as available_quantity, enterprise_id 
+            from 
+            (
+                select C.quantity_code - Count(B.id) as available_quantity, A.id, A.state_id, A.enterprise_id
+                From administration_prefix A
+                left join administration_code B on A.id = B.prefix_id 
+                inner join administration_range C on A.range_id = C.id 
+                group by  A.id, C.quantity_code, A.enterprise_id
+            ) a
+            where available_quantity >= {} and enterprise_id = {} and state_id = 2
+            group by id, enterprise_id 
+            
+            '''.format(required_quantity,enterprise_id)
+        else:
+            query='''
+            select id, min(available_quantity) as available_quantity, enterprise_id, range_id
+            from 
+            (
+                select C.quantity_code - Count(B.id) as available_quantity, A.id, A.state_id, A.enterprise_id, C.id as range_id 
+                From administration_prefix A
+                left join administration_code B on A.id = B.prefix_id 
+                inner join administration_range C on A.range_id = C.id 
+                group by  A.id, C.quantity_code, A.enterprise_id, C.id
+            ) a
+            where available_quantity >= {} and enterprise_id = {} and state_id = 2 and range_id = {}
+            group by id, enterprise_id, range_id
+            
+            '''.format(required_quantity,enterprise_id,prefix_id)
 
         cursor= connection.cursor()
         cursor.execute(query)
         spv = cursor.fetchone()
         
-        return spv[0]
+        if (spv == None):
+            return None
+        else:
+            return spv[0]
     
     def addYears(date_to_add: datetime, years):
         try:

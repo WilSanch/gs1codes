@@ -1,89 +1,127 @@
 {% extends 'administration/base.html' %}
+
 {% block content %}  
     <form id="prefixAssignation" action="/codes/assignation/" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <br><br><br>
+        <h6 class="center">Asignación de Codigos</h6>
+        
+        <div class="row">
+            <div class="col s12">
+              <div class="card grey lighten-4">
+                <div class="card-content orange-text text-darken-4">
+                  <i class="material-icons prefix">info_outline</i> Realice el proceso de asignación de códigos para una empresa. Ingrese el Número de identificación de la empresa NIT y seleccione las características para el prefijo/código que desea asignar.
+                </div>
+              </div>
+            </div>
+        </div>
+  
         <div class="row">
             <div class="col s3">
                 <label for="nit">Nit de la empresa</label>
-                <input type="text" id="nit" name="nit" value="{{contexto.enterprise.identification}}" readonly required><br><br>
+                <input type="text" id="nit" name="nit" value="{{contexto.enterprise.identification}}" readonly required autocomplete="off">
             </div>
             <div class="col s9">
                 <label for="name">Razón social</label>
-                <input type="text" id="name" name="name" value="{{contexto.enterprise.enterprise_name}}" readonly><br><br>
-            </div>            
+                <input type="text" id="name" name="name" value="{{contexto.enterprise.enterprise_name}}" readonly>
+            </div>
         </div>
+
+        <div class="row" id="code_info">
+            <div class="col s7">
+                <diV class="col-s12">
+                    <div class="col s10">
+                        <label class="black-text">Cantidad de códigos adquiridos:</label>
+                    </div>
+                    <div class="col s2">
+                        <label class="indigo-text text-darken-4">{{contexto.enterprise.code_quantity_purchased}}</label>
+                    </div>
+                </div>
+                <br>
+                <diV class="col-s12">
+                    <div class="col s10">
+                        <label class="black-text">Cantidad de códigos asignados:</label>
+                    </div>
+                    <div class="col s2">
+                        <label class="indigo-text text-darken-4">{{contexto.enterprise.code_quantity_reserved}}</label>
+                    </div>
+                </div>
+                <br>
+                <diV class="col-s12">
+                    <div class="col s10">
+                        <label class="black-text">Cantidad de códigos pendientes por asignar:</label>
+                    </div>
+                    <div class="col s2">
+                        <label class="indigo-text text-darken-4">{{contexto.enterprise.code_residue}}</label>
+                    </div>
+                </diV>
+            </div>
+            <div class="col s5 ">
+                <label class="orange-text text-darken-3">Esta información solamente aplica para empresas que se hallan vinculado con pago de cuota de acceso a 99 años.</label>
+            </div>
+        </div>
+        <div id="space"><hr><br></div>
+        
         <div class="row">
             <div class="col s3">
-                <label for="quantity">(*)Códigos requeridos</label>
+                <label for="quantity">(*) Cantidad de códigos</label>
                 <input type="number" min="1" max="100000" id="quantity" name="quantity" value="" required>
+                
             </div>
-            <div class="input-field col s5">
+            <div class="col s3">
+                <a class="material-icons tooltipped" data-position="botton" data-tooltip="Info. La cantidad de códigos requeridos debe ser menor a la cantidad de códigos límite del rango en el tipo de prefijo.">info</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s4">
+                <label for="schema">(*) Esquema de asignación</label>
                 <select id="schema" name="schema" required>
                     <option value="" disabled selected>Elige una opción</option>
                     {% for op in contexto.schemas %}
-                    <option value="{{op.id}}">{{op.description}}</option>
+                        <option value="{{op.id}}">{{op.description}}</option>
                     {% endfor %}
                 </select>
-                <label>(*)Esquema de asignación</label>
             </div>
             <div class="col s4">
-                <label for="assignment_date">(*)Fecha de asignación</label>
-                <input type="date" id="assignment_date" name="assignment_date" value="" required>
+                <label for="codetype">(*) Tipo de código</label>
+                <select id="codetype" name="codetype" required>
+                    <option value="" disabled="" selected="">Elige una opción</option>
+                </select>
+            </div>
+            <div class="col s4">
+                <label for="prefixtype">(*) Tipo de prefijo</label>
+                <select id="prefixtype" name="prefixtype" required>
+                    <option value="" disabled="" selected="">Elige una opción</option>
+                </select>
             </div>
         </div>
         <div class="row">        
             <div class="col s12">
-                <label for="observation">(*)Observaciones</label>
-                <textarea id="observation" name="observation" class="materialize-textarea" required></textarea>
+                <label for="observation">Observaciones</label>
+                <textarea id="observation" name="observation" class="materialize-textarea"></textarea>
             </div>
         </div>
         
-        <button class="btn waves-effect waves-light" type="submit" name="action">Asignar Códigos / Prefijo
-            <i class="material-icons right">send</i>
-        </button>
+        <div class="row">
+            <a class="btn waves-effect waves-light grey" href="{% url 'assignate_search_enterprise'%}?obj=1">Cambiar Empresa
+                <i class="material-icons left">arrow_back</i>
+            </a>
+
+            <button class="btn waves-effect waves-light Orangelogyca" type="submit" name="action">Asignar Códigos / Prefijo
+                <i class="material-icons right">arrow_forward</i>
+            </button>
+        </div>
+        
 
         <input id="error" type="hidden" value="{{ contexto.Error }}">
     </form>
     
     <br><br><br><br>
-    <h6 class="center">PREFIJOS ASIGNADOS</h6>
-    <table class="table responsive" id="myTable">
-        <thead>
-        <tr>
-            <th>Prefijo</th>
-            <th>Tipo</th>
-            <th>Esquema</th>
-            <th>Estado</th>
-            <th>Observación</th>
-            <th>Fecha asignación</th>
-            <th>Fecha vigencia</th>
-            <th>Códigos Asignados</th>
-            <th>Códigos Disponibles</th>
-        </tr>
-        </thead>
-        <tbody >
-        {% for index,row in contexto.prefix %}
-        <tr>
-            <td>{{row.id_prefix}}</td>
-            <td>{{row.type}}</td>
-            <td>{{row.schema}}</td>
-            <td>{{row.state}}</td>
-            <td>{{row.observation}}</td>
-            <td>{{row.assignment_date}}</td>
-            <td>{{row.validity_date}}</td>
-            <td>{{row.assigned}}</td>
-            <td>{{row.available}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <div class="col-md-12 center text-center">
-	    <span class="left" id="total_reg"></span>
-        <ul class="pagination pager" id="myPager"></ul>
+    <div style="white-space: nowrap; overflow-x:auto;" id="prefixTable">   
     </div>
-
-    
+    <br>
+    <div style="white-space: nowrap;" id="codesTable">
+    </div>
+    <br><br><br>
 {% endblock %}
 
 {% block JsPage%}
@@ -95,13 +133,70 @@
     }
     $(document).ready(function(){
         M.textareaAutoResize($('#observation'));
-        $('#myTable').DataTable({
-            dom: 'B<"clear">rtip',
-            pageLength: 4,
-            buttons: {
-                name: 'primary',
-                buttons: ['excel']
-            }
+        var nit = $('#nit').val();
+        
+        $("#prefixTable").html("");
+        $.ajax({
+            url: "{% url 'ajax_load_prefixtable' opc=1 %}",
+            data: {'nit': nit},
+            success:function(result){
+                $("#prefixTable").html(result);
+            },
+        });
+
+        var return_codes = "{{contexto.enterprise.return_codes}}";
+        if (return_codes == "True") {
+            $('#code_info').show();
+            $('#space').show();
+        } else {
+            $('#code_info').hide();
+            $('#space').hide();
+        }
+    });
+    
+    $('select#schema').change(function (e) {
+        e.preventDefault();
+        var schemaId = $(this).val();
+        data = {'schema': schemaId};
+
+        $.ajax({
+            url: "{% url 'ajax_load_codetypes' %}",
+            data:data,
+            success:function(result){
+                $("#codetype").html("")
+                str = ''
+                str = '<option value="" disabled="" selected="">Elige una opción</option>'
+                for (var i = result.length - 1; i >= 0; i--) {
+                    
+                    str+= '<option value='+result[i].id+'>'+result[i].description+'</option>'
+                };
+                document.getElementById("codetype").innerHTML = str;
+                $("#codetype").formSelect()
+
+            },
+        });
+    });
+
+    $('select#codetype').change(function (e) {
+        e.preventDefault();
+        var codetypeId = $(this).val();
+        data = {'codetype': codetypeId};
+        
+        $.ajax({
+            url: "{% url 'ajax_load_prefixtypes' %}",
+            data:data,
+            success:function(result){
+                $("#prefixtype").html("")
+                str = ''
+                str = '<option value="" disabled="" selected="">Elige una opción</option>'
+                for (var i = result.length - 1; i >= 0; i--) {
+                    
+                    str+= '<option value='+result[i].id+'>'+result[i].description+'</option>'
+                };
+                document.getElementById("prefixtype").innerHTML = str;
+                $("#prefixtype").formSelect()
+
+            },
         });
     });
 </script>

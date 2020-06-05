@@ -2,11 +2,10 @@ from typing import TypedDict, List
 import datetime
 from datetime import datetime, date
 import json
-from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range  
+from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range, Code  
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from datetime import datetime
 from django.db import connection,transaction, IntegrityError
-from administration.models.core import Prefix,Schema,Enterprise,CodeTypeBySchemas,Range,Code
 from administration.bussiness.models import *
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise
 from administration.bussiness.codes import code_assignment
@@ -44,8 +43,44 @@ def prefix_activation(model: Prefix, assignment_date, observation, user):
 def get_id7700_from_id29(id_prefix):
     return int("7700" + str(id_prefix)[2:])
 
+
+def codes_inactivation(code_to_inactivate, modification_date):
+    if (not code_to_inactivate):
+        return "El prefijo no existe"
+
+    if (code_to_inactivate.state_id == StCodes.Suspendido.value):
+        return codes_activation(code_to_inactivate,modification_date)
+
+    if (code_to_inactivate.state_id != StCodes.Asignado.value):
+        return "Solo es posible inactivar un código asignado. Por favor verifique!"
+    
+    code_to_inactivate.state_id = StCodes.Suspendido.value
+
+    code_to_inactivate.save()
+
+    return ""
+
+def codes_activation(code_to_activate, modification_date):
+    if (not code_to_activate):
+        return "El prefijo no existe"
+
+    if (code_to_activate.state_id == StCodes.Asignado.value):
+        return codes_inactivation(code_to_activate,modification_date)
+
+    if (code_to_activate.state_id != StCodes.Suspendido.value):
+        return "Solo es posible activar un código suspendido. Por favor verifique!"
+    
+    code_to_activate.state_id = StCodes.Asignado.value
+
+    code_to_activate.save()
+
+    return ""
+
 def prefix_inactivation(model: Prefix, modification_date, observation, user):
     try:
+        if (model.state_id == StCodes.Suspendido.value):
+            return prefix_activation(model, modification_date, observation, user)
+
         if (str(model.id_prefix).startswith("29")): 
             prefix_to_inactivate: Prefix = Prefix.objects.get(id_prefix=get_id7700_from_id29(model.id_prefix))
             prefix_to_inactivate.state_id = StCodes.Suspendido.value
@@ -67,7 +102,7 @@ def prefix_inactivation(model: Prefix, modification_date, observation, user):
 Asigna y Guarda el prefijo
 '''
 @transaction.atomic
-def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_partial_changes, username, combination, existing_prefix, process):
+def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_partial_changes, username, combination, existing_prefix, process, selected_range):
     try:
         if (not existing_prefix):
             quantity = ac.Quantity
@@ -82,24 +117,29 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
         create_new_prefix = False
 
         quantity_range = 0
-        if (ac.PrefixType == PrefixRangeType.PesoFijo.value or ac.PreferIndicatedPrefix):
-            prefix_range = Range.objects.filter(id=ac.PrefixType)
-        else:
-            if (ac.Quantity <= enterprise.code_residue):
-                prefix_range = Range.objects.filter(quantity_code= quantity).exclude(country_code= 29).first()
-            else:
-                if (quantity % 10 == 0):
-                    quantity_range = quantity
-                    prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
-                    
-                    if (not prefix_range):
-                        quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
-                else:
-                    quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
-                prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
 
-            if (not prefix_range and not existing_prefix):                    
-                return "No es posible asignar " + str(quantity) + " códigos a un prefijo."
+        if (not selected_range):
+            if (ac.PrefixType == PrefixRangeType.PesoFijo.value or ac.PreferIndicatedPrefix):
+                prefix_range = Range.objects.filter(id=ac.PrefixType)
+            else:
+                if (ac.Quantity <= enterprise.code_residue):
+                    prefix_range = Range.objects.filter(quantity_code= quantity).exclude(country_code= 29).first()
+                else:
+                    if (quantity % 10 == 0):
+                        quantity_range = quantity
+                        prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
+                        
+                        if (not prefix_range):
+                            quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
+                    else:
+                        quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
+                    prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
+
+                if (not prefix_range and not existing_prefix):
+                    return "No es posible asignar " + str(quantity) + " códigos a un prefijo."
+        else:
+            quantity_range = quantity
+            prefix_range = selected_range
 
         prefix_enterprise: Enterprise = Enterprise.objects.filter(id=enterprise.id).filter(code_residue__gte=quantity).first()
 
@@ -108,7 +148,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             create_new_prefix = True
         else:
             if (not existing_prefix):
-                possible_prefix = Common.GetAvailablePrefix(quantity)
+                possible_prefix = Common.GetAvailablePrefix(quantity,enterprise.id,prefix_range.id)
             else:
                 possible_prefix = existing_prefix.id
 
@@ -146,17 +186,21 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             with transaction.atomic():
                 result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
 
+            if (result != ""):
+                transaction.set_rollback(True)
+                return result
             
             if (create_new_prefix==True):
                 if (result != ""):
                     with transaction.atomic():
                         new_prefix.delete()
+                    transaction.set_rollback(True)
                     return IntegrityError
 
             if (combination.give_prefix == False):
                 bought_codes = min([quantity,quantity_range])
 
-            enterprise = update_totals_enterprise(ac,enterprise)
+            enterprise = update_totals_enterprise(ac,enterprise,prefix_range)
             
             with transaction.atomic():
                 enterprise.save()
@@ -188,42 +232,71 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
                 if (enterprise==False):
                     return "No fue posible crear la empresa."
 
-        combinacion: CodeTypeBySchemas = CodeTypeBySchemas.objects.filter(code_type=ac.Type,schema_id=ac.Schema).first()
+        combinacion: CodeTypeBySchemas = CodeTypeBySchemas.objects.filter(code_type_id=ac.Type,schema_id=ac.Schema).first()
         schema: Schema = Schema.objects.filter(id=ac.Schema).first()
         process = 0
 
         if (not combinacion):
-            return "El esquema " + str(ac.Schema) + " y el tipo de código" + str(ac.Type) + "no se pueden combinar"
+            return "El esquema " + str(ac.Schema) + " y el tipo de código" + str(ac.Type) + " no se pueden combinar"
 
         if (ac.PrefixType == PrefixRangeType.R_4D.value and ac.VariedFixedUse == True and
             ac.Type == CodeType.DerechoIdentificacionExcenNuevos.value):
             ac.PrefixType = PrefixRangeType.PesoFijo.value
         
         if (combinacion.give_prefix == 1):
-            range_obj: Range = None
+            range_obj = None
+            existing_prefix = None
 
             if (ac.PreferIndicatedPrefix):
-                range_obj = Range.objects.filter(id=int(ac.PrefixType))
-            else:
-                range_obj = Range.objects.all()
+                range_obj = Range.objects.get(id=int(ac.PrefixType))
+                ac.Quantity = range_obj.quantity_code
 
-            if (len(range_obj) == 1):
-                ac.Quantity *= range_obj.quantity_code
+                if (ac.Quantity > range_obj.quantity_code):
+                    return "La cantidad de códigos seleccionada no puede ser mayor a la cantidad de códigos para ese rango"
             else:
-                ac.Quantity *= Range.objects.values_list('quantity_code', flat=True).filter(id=ac.PrefixType)[:1]
-        else:
+                code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=int(ac.Type),range_id=int(ac.PrefixType))
+                range_obj = Range.objects.get(id=int(ac.PrefixType))
+
+                if (not code_type_by_range):
+                    return "No existen rangos para el tipo de código seleccionado. Por favor verifique!"
+
+                if (not range_obj):
+                    return "Error. No fue posible encontrar el rango"
+
+                if (ac.Quantity > range_obj.quantity_code):
+                    return "La cantidad de códigos seleccionada no puede ser mayor a la cantidad de códigos para ese rango"
+            
             if (ac.Quantity > enterprise.code_residue and enterprise.code_residue > 0):
-                id_prefix = Common.GetAvailablePrefix(enterprise.code_residue)
+                id_prefix = Common.GetAvailablePrefix(enterprise.code_residue,enterprise.id,range_obj.id)
+                if (not id_prefix):
+                    existing_prefix = None
+                else:
+                    existing_prefix = Prefix.objects.get(id=id_prefix)
+                process = 1
+            else:
+                if (ac.Quantity <= enterprise.code_residue):
+                    id_prefix = Common.GetAvailablePrefix(ac.Quantity,enterprise.id,range_obj.id)
+                    if (not id_prefix):
+                        existing_prefix = None
+                    else:
+                        existing_prefix = Prefix.objects.get(id=id_prefix)
+                else:
+                    existing_prefix = None
+        else:
+            range_obj = None
+
+            if (ac.Quantity > enterprise.code_residue and enterprise.code_residue > 0):
+                id_prefix = Common.GetAvailablePrefix(enterprise.code_residue,enterprise.id,0)
                 existing_prefix = Prefix.objects.get(id=id_prefix)
                 process = 1
             else:
                 if (ac.Quantity <= enterprise.code_residue):
-                    id_prefix = Common.GetAvailablePrefix(ac.Quantity)
+                    id_prefix = Common.GetAvailablePrefix(ac.Quantity,enterprise.id,0)
                     existing_prefix = Prefix.objects.get(id=id_prefix)
                 else:
                     existing_prefix = None
             
-        result = prefix_assignment(ac, enterprise, schema, False, username, combinacion, existing_prefix, process)
+        result = prefix_assignment(ac, enterprise, schema, False, username, combinacion, existing_prefix, process, range_obj)
        
         if (result[:3] != "ok."):
             return "Se presentó un error. " + result
@@ -234,7 +307,7 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         return ex
 
 @transaction.atomic
-def regroup(enterprise,migration_date,user_name,prefix_request,validity_date):
+def regroup(enterprise,migration_date,user_name,prefix,validity_date):
     try:
         new_prefix_length: int = 11
         new_range: int = 6 # 8D
@@ -242,12 +315,12 @@ def regroup(enterprise,migration_date,user_name,prefix_request,validity_date):
         reserved = 0
         residue = 0
 
-        msg_request = "Prefijo: " + str(prefix_request.id_prefix) + " - Rango: " + str(prefix_request.range_id) + ". "
-        prefix: Prefix = Prefix.objects.get(id_prefix=prefix_request.id_prefix,range_id=prefix_request.range_id,enterprise_id=enterprise.id)
+        msg_request = "Prefijo: " + str(prefix.id_prefix) + " - Rango: " + str(prefix.range_id) + ". "
+        
         if (not prefix):
             return msg_request + str(UserMessages.Tmp5) + " O esta asignado a otra empresa"
         
-        o_range: Range = Range.objects.filter(id=prefix_request.range_id).filter(regrouping=True)
+        o_range: Range = Range.objects.filter(id=prefix.range_id).filter(regrouping=True)
         if (not o_range):
             return msg_request + "El rango no permite reagrupación."
 
@@ -258,7 +331,7 @@ def regroup(enterprise,migration_date,user_name,prefix_request,validity_date):
 
         bulk_prefix=[]
         created_prefixes=[]
-        q1 = Queries.PrefixToCreateFromRegroup(prefix.id,prefix_request.range_id)
+        q1 = Queries.PrefixToCreateFromRegroup(prefix.id,prefix.range_id)
         cursor= connection.cursor()
         cursor.execute(q1)
         dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id','assignment_date','assigned'])
@@ -367,30 +440,30 @@ def partial_transfer(prefix: PrefixId, enterpriseO: Enterprise, enterpriseD: Ent
 
 def transfer(request: CodeTransfer, prefix: PrefixId):
     user = ""
-    if (request.origin_nit == request.destination_nit):
+    if (request.OriginNit == request.DestinationNit):
         return "Los nit no pueden ser iguales"
 
-    if (request.process == None):
+    if (request.Process == None):
         return "No se escogio un proceso válido"
 
-    enterpriseO: Enterprise = Enterprise.objects.get(identification=request.origin_nit)
-    enterpriseD: Enterprise = Enterprise.objects.get(identification=request.destination_nit)
+    enterpriseO: Enterprise = Enterprise.objects.get(identification=request.OriginNit)
+    enterpriseD: Enterprise = Enterprise.objects.get(identification=request.DestinationNit)
 
     if (not enterpriseO):
-        return UserMessages.Msg01 + str(request.origin_nit)
+        return UserMessages.Msg01 + str(request.OriginNit)
     
     if (not enterpriseD):
-        return UserMessages.Msg01 + str(request.destination_nit)
+        return UserMessages.Msg01 + str(request.DestinationNit)
 
-    if (int(request.process) == TransferProcess.Total.value):
-        return total_transfer(enterpriseO, enterpriseD, request.observation, user)
+    if (int(request.Process) == TransferProcess.Total.value):
+        return total_transfer(enterpriseO, enterpriseD, request.Observation, user)
     else:
-        return partial_transfer(prefix, enterpriseO, enterpriseD, request.observation, user)
+        return partial_transfer(prefix, enterpriseO, enterpriseD, request.Observation, user)
 
 def getPrefixesByEnterpriseId(id):
     q1 = Queries.getPrefixesByEnterprise(id)
     cursor= connection.cursor()
     cursor.execute(q1)
-    dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id_prefix','type','schema','state','observation','assignment_date','validity_date','assigned','available'])
+    dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id_prefix','quantity_code','type','schema','state','observation','assignment_date','validity_date','assigned','available','id','state_id','regrouping'])
 
     return dpcd.iterrows

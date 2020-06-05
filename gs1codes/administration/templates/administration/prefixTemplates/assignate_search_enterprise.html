@@ -1,0 +1,73 @@
+{% extends 'administration/base.html' %}
+{% block content %}  
+    <form id="prefixAssignationsearch" action="../assignate_search_enterprise/" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <br><br><br>
+        <div class="row">
+            {% if contexto.process == 1 %}
+                <h6 class="center">Asignación de Codigos</h6>
+            {% endif %}
+            {% if contexto.process == 2 %}
+                <h6 class="center">Activar/Inactivar prefijos y códigos manualmente</h6>
+            {% endif %}
+            {% if contexto.process == 3 %}
+                <h6 class="center">Reagrupar prefijos</h6>
+            {% endif %}
+            {% if contexto.process == 4 %}
+                <h6 class="center">Devolución de códigos</h6>
+            {% endif %}
+            {% if contexto.process == 5 %}
+                <h6 class="center">Cesión de códigos</h6>
+            {% endif %}
+            {% if contexto.process == 6 %}
+                <h6 class="center">Actualización masiva de vigencia</h6>
+            {% endif %}
+        </div>
+        <br>
+        <div class="row">
+            <input id="process" name="process" type="hidden" value="{{ contexto.process }}">
+            <div class="col s3">
+                <label for="nit">Nit de la empresa</label>
+                <input type="text" id="nit" name="nit" value="" required autocomplete="off"><br><br>
+            </div>
+            <div class="col s9">
+                <label for="name">Razón social</label>
+                <input type="text" id="name" name="name" value="{{contexto.enterprise_name}}" readonly><br><br>
+            </div>
+        </div>
+        
+        <div class="row">
+            <button class="btn waves-effect waves-light Orangelogyca" type="submit" name="action" value="prueba">Buscar Empresa
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+
+        <input id="error" type="hidden" value="">
+    </form>
+    
+{% endblock %}
+
+{% block JsPage%}
+<script>
+   
+   $("#nit").change(function (e) {
+        e.preventDefault();
+        // get the nickname
+        var nit = $(this).val();
+        // GET AJAX request
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'validate_nit' %}",
+            data: {"nit": nit},
+            success: function (response) {
+                $('#name').val(response["enterprise_name"])
+            },
+            error: function (response) {
+                $('#name').val("")
+                $('#nit').val("")
+                alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+            }
+        })
+    })
+</script>
+{% endblock%}
