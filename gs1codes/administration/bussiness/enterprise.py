@@ -1,6 +1,6 @@
 from administration.bussiness.models import CodeAssignmentRequest
 from administration.models import Enterprise, Range
-from django.db import models
+from django.db import models, IntegrityError
 
 def new_enterprise(ac: CodeAssignmentRequest):
     try:

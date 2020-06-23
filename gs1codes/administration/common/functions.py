@@ -519,6 +519,23 @@ class Common():
             return None
         else:
             return spv[0]
+
+    def GetIdAvailablePrefix(enterprise_id,range_id):
+        query='''
+        select id, code_residue as available_quantity, enterprise_id 
+        From administration_prefix 
+        where enterprise_id = {} and range_id = {} and code_residue > 0 and state_id = 2  
+        
+        '''.format(enterprise_id,range_id)
+
+        cursor= connection.cursor()
+        cursor.execute(query)
+        spv = cursor.fetchone()
+        
+        if (spv == None):
+            return None
+        else:
+            return spv[0]
     
     def addYears(date_to_add: datetime, years):
         try:

@@ -41,6 +41,9 @@ def assignation(request):
         ac.Type = int(request.data['codetype'])
         ac.PrefixType = int(request.data['prefixtype'])
         ac.VariedFixedUse = False
+
+        if (ac.PrefixType==0):
+            ac.PrefixType = None
         
         resp = prefix.prefix_assignation(ac,id_agreement,agreement_name,user_name)
 
@@ -114,13 +117,14 @@ def assignate_search_enterprise(request):
 @login_required 
 def load_code_types(request): # Carga los tipos de código
     schema = int(request.GET.get('schema'))
-    code_types = CodeTypeBySchemas.objects.filter(schema_id=schema).order_by('-code_type_id').distinct('code_type_id').exclude(give_prefix=0)
+    code_types = CodeTypeBySchemas.objects.filter(schema_id=schema).order_by('-code_type_id').distinct('code_type_id')
 
     codetype = []
     for ct in code_types:
         code_type = CodeType.objects.get(id=ct.code_type_id)
-        data = {'id' : code_type.id, 'description': code_type.description}
-        codetype.append(data)
+        if (code_type.state!=0):
+            data = {'id' : code_type.id, 'description': code_type.description}
+            codetype.append(data)
     json_obj = simplejson.dumps(codetype)
     return HttpResponse(json_obj, content_type='application/json')
 

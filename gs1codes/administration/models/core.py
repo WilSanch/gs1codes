@@ -24,7 +24,7 @@ class State(models.Model):
         verbose_name = _("State")
         verbose_name_plural = _("States")
     def __str__(self):
-        return self.id
+        return self.description
 
     def get_absolute_url(self):
         return reverse("State_detail", kwargs={"pk": self.pk})
@@ -74,7 +74,7 @@ class Range(models.Model):
         verbose_name_plural = _("Ranges")
         
     def __str__(self):
-        return self.id
+        return self.name
 
     def get_absolute_url(self):
         return reverse("Range_detail", kwargs={"pk": self.pk})
@@ -219,7 +219,7 @@ class ProductState(models.Model):
         verbose_name_plural = _("product_states")
 
     def __str__(self):
-        return self.id
+        return self.description
 
     def get_absolute_url(self):
         return reverse("product_state_detail", kwargs={"pk": self.pk})
@@ -246,7 +246,7 @@ class MeasureUnit(models.Model):
         verbose_name_plural = _("measure_units")
 
     def __str__(self):
-        return self.id
+        return self.code
 
     def get_absolute_url(self):
         return reverse("measure_unit_detail", kwargs={"pk": self.pk})
@@ -323,7 +323,7 @@ class GpcCategory(models.Model):
         verbose_name_plural = _("gpc_categorys")
 
     def __str__(self):
-        return self.id
+        return self.segment_code
 
     def get_absolute_url(self):
         return reverse("gpc_category_detail", kwargs={"pk": self.pk})
@@ -363,7 +363,7 @@ class Schema(models.Model):
         verbose_name_plural = _("schemas")
 
     def __str__(self):
-        return self.id
+        return self.description
 
     def get_absolute_url(self):
         return reverse("schema_detail", kwargs={"pk": self.pk})
@@ -436,7 +436,7 @@ class Enterprise(models.Model):
         unique_together = [['country', 'identification']]
 
     def __str__(self):
-        return self.id
+        return self.identification
 
     def get_absolute_url(self):
         return reverse("enterprise_detail", kwargs={"pk": self.pk})
@@ -504,6 +504,26 @@ class Prefix(models.Model):
     regrouped_parent_prefix = models.CharField(max_length=20, blank=False, null=True)
     """
     prefijo del que se reagrupó
+    """
+
+    code_quantity_purchased =  models.IntegerField(default=0,null=False,blank=False)
+    """
+    Cantidad de codigos comprados
+    """
+    
+    code_quantity_consumed =  models.IntegerField(default=0,null=False,blank=False)
+    """
+    Cantidad de codigos consumidos
+    """
+    
+    code_quantity_reserved =  models.IntegerField(default=0,null=False,blank=False)
+    """
+    Cantidad de codigos reservados
+    """
+    
+    code_residue =  models.IntegerField(default=0,null=False,blank=False)
+    """
+    Cantidad de codigos del saldo
     """
     
 

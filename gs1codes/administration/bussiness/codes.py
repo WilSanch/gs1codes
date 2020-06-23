@@ -502,7 +502,7 @@ def valida_codes(codes):
 
     return codes
 
-def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, enterprise, existing_prefix):
+def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, enterprise, existing_prefix, combination=None):
     try:
 
         product_type: int = None
@@ -520,7 +520,10 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
         if (not existing_prefix):
             code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id, ac.Quantity)
         else:
-            code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id, ac.Quantity)
+            if (not prefix):
+                code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id, ac.Quantity)
+            else:
+                code_list = Common.CodeGenerator(existing_prefix.id_prefix, existing_prefix.range_id, existing_prefix.code_residue)
 
             for code in code_list:
                 new_code = Code()
@@ -531,10 +534,10 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
                 new_code.product_type_id = product_type
                 bulk_code.append(new_code)
 
-            if (ac.Quantity <= enterprise.code_residue):
+            if (not prefix):
                 code_list = {}
             else:
-                code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id, ac.Quantity - enterprise.code_residue)
+                code_list = Common.CodeGenerator(prefix.id_prefix, prefix.range_id, ac.Quantity - prefix.code_residue)
 
 
         for code in code_list:

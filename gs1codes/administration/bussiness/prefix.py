@@ -2,14 +2,14 @@ from typing import TypedDict, List
 import datetime
 from datetime import datetime, date
 import json
-from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range, Code  
+from administration.models.core import Prefix,Schema,Enterprise,CodeTypeByRanges,CodeTypeBySchemas, Range, Code, CodeType as ModelCodeType
 from administration.bussiness.models import PrefixId, ActivationInactivationBM, MarkCodeRespose, CodeAssignmentRequest, CodeAssignation
 from datetime import datetime
 from django.db import connection,transaction, IntegrityError
 from administration.bussiness.models import *
 from administration.bussiness.enterprise import new_enterprise, update_totals_enterprise
 from administration.bussiness.codes import code_assignment
-from administration.common.constants import UserMessages, PrefixRangeType, CodeType, StCodes
+from administration.common.constants import UserMessages, PrefixRangeType, CodeType as Code_Type, StCodes
 from administration.common.functions import Common,Queries
 import pandas as pd
 
@@ -20,7 +20,7 @@ def update_validity_date_prefix(model: Prefix):
     else:
         if (schema.validity_date == None):
             if (schema.validate_from_creation_date == False):
-                model.validity_date = Common.AddYears(model.assignment_date, schema.validity_time)
+                model.validity_date = Common.addYears(model.assignment_date, schema.validity_time)
         else:
             model.validity_date = schema.validity_date
     return model.validity_date
@@ -98,76 +98,60 @@ def prefix_inactivation(model: Prefix, modification_date, observation, user):
     except model.DoesNotExist:
         return "El prefijo no existe"
 
-'''
-Asigna y Guarda el prefijo
-'''
-@transaction.atomic
-def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_partial_changes, username, combination, existing_prefix, process, selected_range):
-    try:
-        if (not existing_prefix):
-            quantity = ac.Quantity
-        else:
-            if (process==1):
-                quantity = ac.Quantity - enterprise.code_residue
-            else:
-                quantity = ac.Quantity
+# -----------------------------------------------------------------------------------------------------------------
+# Asigna y Guarda el prefijo
+# -----------------------------------------------------------------------------------------------------------------
 
-        code_type = ac.Type
+@transaction.atomic
+def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_partial_changes, username, combination, existing_prefix, selected_range):
+    try:
         prefix_range: Range = None
         create_new_prefix = False
 
-        quantity_range = 0
-
-        if (not selected_range):
-            if (ac.PrefixType == PrefixRangeType.PesoFijo.value or ac.PreferIndicatedPrefix):
-                prefix_range = Range.objects.filter(id=ac.PrefixType)
-            else:
-                if (ac.Quantity <= enterprise.code_residue):
-                    prefix_range = Range.objects.filter(quantity_code= quantity).exclude(country_code= 29).first()
-                else:
-                    if (quantity % 10 == 0):
-                        quantity_range = quantity
-                        prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
-                        
-                        if (not prefix_range):
-                            quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
-                    else:
-                        quantity_range = int(str(1).ljust(len(str(quantity)) + 1, '0'))
-                    prefix_range = Range.objects.filter(quantity_code= quantity_range).exclude(country_code= 29).first()
-
-                if (not prefix_range and not existing_prefix):
-                    return "No es posible asignar " + str(quantity) + " códigos a un prefijo."
-        else:
-            quantity_range = quantity
-            prefix_range = selected_range
-
-        prefix_enterprise: Enterprise = Enterprise.objects.filter(id=enterprise.id).filter(code_residue__gte=quantity).first()
-
-        if (not prefix_enterprise):
-            assigned_prefix = Common.PrefixGenerator(prefix_range.id)
-            create_new_prefix = True
-        else:
+        if (combination.give_prefix == 0):
             if (not existing_prefix):
-                possible_prefix = Common.GetAvailablePrefix(quantity,enterprise.id,prefix_range.id)
+                quantity = ac.Quantity
             else:
-                possible_prefix = existing_prefix.id
-
-            if (not possible_prefix):
-                assigned_prefix = Common.PrefixGenerator(prefix_range.id)
-                create_new_prefix = True
-            else:
-                if (ac.Quantity > enterprise.code_residue and enterprise.code_residue > 0):
-                    assigned_prefix = Common.PrefixGenerator(prefix_range.id)
-                    create_new_prefix = True
+                quantity = ac.Quantity - existing_prefix.code_residue
+                if (quantity <= 0):
+                    create_new_prefix = False
                 else:
-                    assigned_prefix = possible_prefix
-        
-        if (not assigned_prefix):
-            return UserMessages.Msg04
+                    create_new_prefix = True
         else:
-            new_prefix = Prefix()
+            quantity = ac.Quantity / selected_range.quantity_code
 
-            if (create_new_prefix==True):
+        quantity_range = 0
+        new_prefix = Prefix()
+
+        if (combination.give_prefix == 1):
+            ac.Quantity = prefix_range.quantity_code
+
+            with transaction.atomic():
+                for x in range(1, quantity+1):
+                    assigned_prefix = Common.PrefixGenerator(prefix_range.id)
+
+                    new_prefix.id_prefix = assigned_prefix
+                    new_prefix.enterprise_id = enterprise.id
+                    new_prefix.state_id = StCodes.Asignado.value
+                    new_prefix.assignment_date = datetime.now()
+                    new_prefix.schema_id = schema.id
+                    new_prefix.range_id = prefix_range.id
+                    new_prefix.observation = "ASIGNACIÓN AUTOMÁTICA"
+                    new_prefix.validity_date = update_validity_date_prefix(new_prefix)
+                    new_prefix.code_quantity_consumed = 0
+                    new_prefix.code_quantity_purchased = prefix_range.quantity_code
+                    new_prefix.code_quantity_reserved = prefix_range.quantity_code
+                    new_prefix.code_residue = 0
+                    
+                    with transaction.atomic():
+                        new_prefix.save()
+
+                    with transaction.atomic():
+                        result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
+        else:
+            if (create_new_prefix == True):
+                assigned_prefix = Common.PrefixGenerator(prefix_range.id)
+
                 new_prefix.id_prefix = assigned_prefix
                 new_prefix.enterprise_id = enterprise.id
                 new_prefix.state_id = StCodes.Asignado.value
@@ -176,43 +160,34 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                 new_prefix.range_id = prefix_range.id
                 new_prefix.observation = "ASIGNACIÓN AUTOMÁTICA"
                 new_prefix.validity_date = update_validity_date_prefix(new_prefix)
-            else:
-                new_prefix = Prefix.objects.get(id=assigned_prefix)
-
-            if (create_new_prefix==True):
+                new_prefix.code_quantity_consumed = 0
+                new_prefix.code_quantity_purchased = prefix_range.quantity_code
+                new_prefix.code_quantity_reserved = quantity
+                new_prefix.code_residue = prefix_range.quantity_code - quantity
+            
                 with transaction.atomic():
                     new_prefix.save()
-            
+
             with transaction.atomic():
                 result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
-
-            if (result != ""):
-                transaction.set_rollback(True)
-                return result
+        
+        if (result != ""):
+            transaction.set_rollback(True)
+            return result
+        
+        enterprise = update_totals_enterprise(ac,enterprise,prefix_range)
+        
+        with transaction.atomic():
+            enterprise.save()
             
-            if (create_new_prefix==True):
-                if (result != ""):
-                    with transaction.atomic():
-                        new_prefix.delete()
-                    transaction.set_rollback(True)
-                    return IntegrityError
-
-            if (combination.give_prefix == False):
-                bought_codes = min([quantity,quantity_range])
-
-            enterprise = update_totals_enterprise(ac,enterprise,prefix_range)
-            
-            with transaction.atomic():
-                enterprise.save()
-            
-            return "ok. Proceso completado correctamente. Se creó el prefijo: " + str(new_prefix.id_prefix)
+        return "ok. Proceso completado correctamente. Se creó el prefijo: " + str(new_prefix.id_prefix)
     
     except IntegrityError as e:
         return "No fue posible guardar el prefijo." 
 
-'''
-Realiza validaciones y consultas previas a la asignación
-'''
+# --------------------------------------------------------------------------------------------------------------
+# Realiza validaciones y consultas previas a la asignación
+# --------------------------------------------------------------------------------------------------------------
 def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agreement_name: str= None, username: str= None):
     
     existing_prefix = Prefix()
@@ -224,6 +199,12 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         return UserMessages.Msg03
 
     try:
+        ac.Type = int(ac.Type)
+
+        if (ac.Quantity<=0):
+            return "La cantidad requerida no puede ser cero o menor que cero. Por favor verifique!"
+
+
         enterprise: Enterprise = Enterprise.objects.filter(identification=ac.Nit).first()
         
         if (not enterprise):
@@ -234,69 +215,66 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
 
         combinacion: CodeTypeBySchemas = CodeTypeBySchemas.objects.filter(code_type_id=ac.Type,schema_id=ac.Schema).first()
         schema: Schema = Schema.objects.filter(id=ac.Schema).first()
-        process = 0
 
         if (not combinacion):
             return "El esquema " + str(ac.Schema) + " y el tipo de código" + str(ac.Type) + " no se pueden combinar"
 
         if (ac.PrefixType == PrefixRangeType.R_4D.value and ac.VariedFixedUse == True and
-            ac.Type == CodeType.DerechoIdentificacionExcenNuevos.value):
+            ac.Type == Code_Type.DerechoIdentificacionExcenNuevos.value):
             ac.PrefixType = PrefixRangeType.PesoFijo.value
         
-        if (combinacion.give_prefix == 1):
-            range_obj = None
-            existing_prefix = None
+        range_obj = None
+        existing_prefix = None
 
-            if (ac.PreferIndicatedPrefix):
-                range_obj = Range.objects.get(id=int(ac.PrefixType))
-                ac.Quantity = range_obj.quantity_code
+        code_type_obj = ModelCodeType.objects.filter(id=ac.Type).first()
 
-                if (ac.Quantity > range_obj.quantity_code):
-                    return "La cantidad de códigos seleccionada no puede ser mayor a la cantidad de códigos para ese rango"
+        if not(ac.PrefixType):
+            code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id)
+
+            if (not code_type_by_range):
+                return "No existen rangos para el tipo de código seleccionado. Por favor verifique!"
             else:
-                code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=int(ac.Type),range_id=int(ac.PrefixType))
-                range_obj = Range.objects.get(id=int(ac.PrefixType))
+                if (code_type_by_range.count() > 1):
+                    for obj in code_type_by_range:
 
-                if (not code_type_by_range):
-                    return "No existen rangos para el tipo de código seleccionado. Por favor verifique!"
+                        if (ac.Quantity%10==0 or ac.Quantity==1):
+                            tmp_quantity = ac.Quantity
+                        else:
+                            tmp_quantity = int( "1".ljust(len(str(ac.Quantity))+1, '0') )
 
-                if (not range_obj):
-                    return "Error. No fue posible encontrar el rango"
-
-                if (ac.Quantity > range_obj.quantity_code):
-                    return "La cantidad de códigos seleccionada no puede ser mayor a la cantidad de códigos para ese rango"
-            
-            if (ac.Quantity > enterprise.code_residue and enterprise.code_residue > 0):
-                id_prefix = Common.GetAvailablePrefix(enterprise.code_residue,enterprise.id,range_obj.id)
-                if (not id_prefix):
-                    existing_prefix = None
+                        range_obj = Range.objects.filter(id=obj.range_id).filter(quantity_code=tmp_quantity).first()
+                        if not(range_obj):
+                            range_obj = None
+                        else:
+                            break
                 else:
-                    existing_prefix = Prefix.objects.get(id=id_prefix)
-                process = 1
-            else:
-                if (ac.Quantity <= enterprise.code_residue):
-                    id_prefix = Common.GetAvailablePrefix(ac.Quantity,enterprise.id,range_obj.id)
-                    if (not id_prefix):
-                        existing_prefix = None
-                    else:
-                        existing_prefix = Prefix.objects.get(id=id_prefix)
-                else:
-                    existing_prefix = None
+                    range_obj = Range.objects.get(id=code_type_by_range.range_id)
         else:
-            range_obj = None
+            #code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id,range_id=ac.PrefixType).first()
+            range_obj = Range.objects.filter(id=ac.PrefixType).first()
 
-            if (ac.Quantity > enterprise.code_residue and enterprise.code_residue > 0):
-                id_prefix = Common.GetAvailablePrefix(enterprise.code_residue,enterprise.id,0)
-                existing_prefix = Prefix.objects.get(id=id_prefix)
-                process = 1
+        if (not range_obj):
+            return "Error. No fue posible encontrar el rango"
+
+        if (combinacion.give_prefix == 1):
+            if (ac.PreferIndicatedPrefix):
+                range_obj = Range.objects.get(id=ac.PrefixType)
+                ac.Quantity *= range_obj.quantity_code
+
+                if (ac.Quantity > range_obj.quantity_code):
+                    return "La cantidad de códigos seleccionada no puede ser mayor a la cantidad de códigos para ese rango"
             else:
-                if (ac.Quantity <= enterprise.code_residue):
-                    id_prefix = Common.GetAvailablePrefix(ac.Quantity,enterprise.id,0)
-                    existing_prefix = Prefix.objects.get(id=id_prefix)
-                else:
-                    existing_prefix = None
+                ac.Quantity *= range_obj.quantity_code
+
+            existing_prefix = None
+        else:
+            id_prefix = Common.GetIdAvailablePrefix(enterprise.id,range_obj.id)
+            if (not id_prefix):
+                existing_prefix = None
+            else:
+                existing_prefix = Prefix.objects.get(id=id_prefix)
             
-        result = prefix_assignment(ac, enterprise, schema, False, username, combinacion, existing_prefix, process, range_obj)
+        result = prefix_assignment(ac, enterprise, schema, False, username, combinacion, existing_prefix, range_obj)
        
         if (result[:3] != "ok."):
             return "Se presentó un error. " + result

@@ -89,7 +89,7 @@
             </div>
             <div class="col s4">
                 <label for="prefixtype">(*) Tipo de prefijo</label>
-                <select id="prefixtype" name="prefixtype" required>
+                <select id="prefixtype" name="prefixtype">
                     <option value="" disabled="" selected="">Elige una opción</option>
                 </select>
             </div>
@@ -180,24 +180,35 @@
     $('select#codetype').change(function (e) {
         e.preventDefault();
         var codetypeId = $(this).val();
+        var schemaId = $("#schema").val();
         data = {'codetype': codetypeId};
         
-        $.ajax({
-            url: "{% url 'ajax_load_prefixtypes' %}",
-            data:data,
-            success:function(result){
-                $("#prefixtype").html("")
-                str = ''
-                str = '<option value="" disabled="" selected="">Elige una opción</option>'
-                for (var i = result.length - 1; i >= 0; i--) {
-                    
-                    str+= '<option value='+result[i].id+'>'+result[i].description+'</option>'
-                };
-                document.getElementById("prefixtype").innerHTML = str;
-                $("#prefixtype").formSelect()
-
-            },
-        });
+        if (schemaId == 1 && codetypeId == 2)
+        {
+            $.ajax({
+                url: "{% url 'ajax_load_prefixtypes' %}",
+                data:data,
+                success:function(result){
+                    $("#prefixtype").html("")
+                    str = ''
+                    str = '<option value="" disabled="" selected="">Elige una opción</option>'
+                    for (var i = result.length - 1; i >= 0; i--) {
+                        
+                        str+= '<option value='+result[i].id+'>'+result[i].description+'</option>'
+                    };
+                    document.getElementById("prefixtype").innerHTML = str;
+                    $("#prefixtype").formSelect()
+                },
+            });
+        }
+        else
+        {
+            $("#prefixtype").html("");
+            str = '';
+            str = '<option value=0 selected=true>Elige una opción</option>';
+            document.getElementById("prefixtype").innerHTML = str;
+            $("#prefixtype").formSelect();
+        }
     });
 </script>
 {% endblock%}
