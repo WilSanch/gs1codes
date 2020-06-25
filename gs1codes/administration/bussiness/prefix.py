@@ -105,12 +105,12 @@ def prefix_inactivation(model: Prefix, modification_date, observation, user):
 @transaction.atomic
 def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_partial_changes, username, combination, existing_prefix, selected_range):
     try:
-        prefix_range: Range = None
         create_new_prefix = False
 
         if (combination.give_prefix == 0):
             if (not existing_prefix):
                 quantity = ac.Quantity
+                create_new_prefix = True
             else:
                 quantity = ac.Quantity - existing_prefix.code_residue
                 if (quantity <= 0):
@@ -118,70 +118,82 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                 else:
                     create_new_prefix = True
         else:
-            quantity = ac.Quantity / selected_range.quantity_code
-
-        quantity_range = 0
+            quantity = int(ac.Quantity / selected_range.quantity_code)
+            create_new_prefix = True
+        
         new_prefix = Prefix()
 
         if (combination.give_prefix == 1):
-            ac.Quantity = prefix_range.quantity_code
+            ac.Quantity = selected_range.quantity_code
 
             with transaction.atomic():
                 for x in range(1, quantity+1):
-                    assigned_prefix = Common.PrefixGenerator(prefix_range.id)
+                    assigned_prefix = Common.PrefixGenerator(selected_range.id)
 
                     new_prefix.id_prefix = assigned_prefix
                     new_prefix.enterprise_id = enterprise.id
                     new_prefix.state_id = StCodes.Asignado.value
                     new_prefix.assignment_date = datetime.now()
                     new_prefix.schema_id = schema.id
-                    new_prefix.range_id = prefix_range.id
+                    new_prefix.range_id = selected_range.id
                     new_prefix.observation = "ASIGNACIÓN AUTOMÁTICA"
                     new_prefix.validity_date = update_validity_date_prefix(new_prefix)
                     new_prefix.code_quantity_consumed = 0
-                    new_prefix.code_quantity_purchased = prefix_range.quantity_code
-                    new_prefix.code_quantity_reserved = prefix_range.quantity_code
+                    new_prefix.code_quantity_purchased = selected_range.quantity_code
+                    new_prefix.code_quantity_reserved = selected_range.quantity_code
                     new_prefix.code_residue = 0
                     
                     with transaction.atomic():
                         new_prefix.save()
 
                     with transaction.atomic():
-                        result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
+                        result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
         else:
             if (create_new_prefix == True):
-                assigned_prefix = Common.PrefixGenerator(prefix_range.id)
+                assigned_prefix = Common.PrefixGenerator(selected_range.id)
 
                 new_prefix.id_prefix = assigned_prefix
                 new_prefix.enterprise_id = enterprise.id
                 new_prefix.state_id = StCodes.Asignado.value
                 new_prefix.assignment_date = datetime.now()
                 new_prefix.schema_id = schema.id
-                new_prefix.range_id = prefix_range.id
+                new_prefix.range_id = selected_range.id
                 new_prefix.observation = "ASIGNACIÓN AUTOMÁTICA"
                 new_prefix.validity_date = update_validity_date_prefix(new_prefix)
-                new_prefix.code_quantity_consumed = 0
-                new_prefix.code_quantity_purchased = prefix_range.quantity_code
+                new_prefix.code_quantity_purchased = selected_range.quantity_code
                 new_prefix.code_quantity_reserved = quantity
-                new_prefix.code_residue = prefix_range.quantity_code - quantity
+                new_prefix.code_residue = selected_range.quantity_code - quantity
             
                 with transaction.atomic():
                     new_prefix.save()
 
             with transaction.atomic():
-                result = code_assignment(new_prefix, ac, username, prefix_range, enterprise, existing_prefix)
-        
+                result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
+
+            if (existing_prefix is not None):
+                if (create_new_prefix == True):
+                    existing_prefix.code_quantity_reserved += existing_prefix.code_residue
+                    existing_prefix.code_residue -=  existing_prefix.code_residue
+                else:
+                    existing_prefix.code_quantity_reserved += ac.Quantity
+                    existing_prefix.code_residue -= ac.Quantity
+
+                with transaction.atomic():
+                    existing_prefix.save()
+       
         if (result != ""):
             transaction.set_rollback(True)
             return result
         
-        enterprise = update_totals_enterprise(ac,enterprise,prefix_range)
+        enterprise = update_totals_enterprise(ac,enterprise,selected_range)
         
         with transaction.atomic():
             enterprise.save()
-            
-        return "ok. Proceso completado correctamente. Se creó el prefijo: " + str(new_prefix.id_prefix)
-    
+        
+        if (create_new_prefix == True):
+            return "ok.Proceso completado correctamente. Se creó el prefijo: " + str(new_prefix.id_prefix)
+        else:
+            return "ok.Proceso completado correctamente. Se asignaron los códigos al prefijo: " + str(existing_prefix.id_prefix)
     except IntegrityError as e:
         return "No fue posible guardar el prefijo." 
 
@@ -231,26 +243,27 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         if not(ac.PrefixType):
             code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id)
 
+            if (ac.Quantity%10==0 or ac.Quantity==1):
+                tmp_quantity = ac.Quantity
+            else:
+                tmp_quantity = int( "1".ljust(len(str(ac.Quantity))+1, '0') )
+
             if (not code_type_by_range):
                 return "No existen rangos para el tipo de código seleccionado. Por favor verifique!"
             else:
                 if (code_type_by_range.count() > 1):
                     for obj in code_type_by_range:
-
-                        if (ac.Quantity%10==0 or ac.Quantity==1):
-                            tmp_quantity = ac.Quantity
-                        else:
-                            tmp_quantity = int( "1".ljust(len(str(ac.Quantity))+1, '0') )
-
                         range_obj = Range.objects.filter(id=obj.range_id).filter(quantity_code=tmp_quantity).first()
                         if not(range_obj):
                             range_obj = None
                         else:
                             break
                 else:
-                    range_obj = Range.objects.get(id=code_type_by_range.range_id)
+                    for obj in code_type_by_range:
+                        range_obj = Range.objects.get(id=obj.range_id)
+                    if (not range_obj):
+                        return "no se encontró un rango para el tipo de prefijo"
         else:
-            #code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id,range_id=ac.PrefixType).first()
             range_obj = Range.objects.filter(id=ac.PrefixType).first()
 
         if (not range_obj):
@@ -279,7 +292,7 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         if (result[:3] != "ok."):
             return "Se presentó un error. " + result
         else:
-            return result
+            return result[3:]
 
     except Exception as ex:
         return ex

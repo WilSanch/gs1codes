@@ -67,8 +67,11 @@
                 <input type="number" min="1" max="100000" id="quantity" name="quantity" value="" required>
                 
             </div>
-            <div class="col s3">
-                <a class="material-icons tooltipped" data-position="botton" data-tooltip="Info. La cantidad de códigos requeridos debe ser menor a la cantidad de códigos límite del rango en el tipo de prefijo.">info</a>
+            <div class="col s9">
+                <div id="give_prefix" style="display: none;">
+                    <span class="indigo-text" style="text-align:justify;font-style: italic;"><br>Debido al esquema de asignación y el tipo de código seleccionado, se creearán prefijos con la misma cantidad de códigos seleccionados.
+                    </span>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -181,34 +184,37 @@
         e.preventDefault();
         var codetypeId = $(this).val();
         var schemaId = $("#schema").val();
-        data = {'codetype': codetypeId};
+        data = {'codetype': codetypeId,
+                'schemaId': schemaId};
         
-        if (schemaId == 1 && codetypeId == 2)
-        {
-            $.ajax({
-                url: "{% url 'ajax_load_prefixtypes' %}",
-                data:data,
-                success:function(result){
-                    $("#prefixtype").html("")
-                    str = ''
-                    str = '<option value="" disabled="" selected="">Elige una opción</option>'
-                    for (var i = result.length - 1; i >= 0; i--) {
-                        
+        $.ajax({
+            url: "{% url 'ajax_load_prefixtypes' %}",
+            data:data,
+            success:function(result){
+                $("#prefixtype").html("")
+                str = ''
+                str = '<option value=0 selected=true>Elige una opción</option>';
+                for (var i = result.length - 1; i >= 0; i--) {
+                    if (i==0)
+                    {
+                        if (result[i].give_prefix==1)
+                        {
+                            $('#give_prefix').show();
+                        }
+                        else
+                        {
+                            $('#give_prefix').hide();
+                        }
+                    }
+                    else
+                    {
                         str+= '<option value='+result[i].id+'>'+result[i].description+'</option>'
-                    };
-                    document.getElementById("prefixtype").innerHTML = str;
-                    $("#prefixtype").formSelect()
-                },
-            });
-        }
-        else
-        {
-            $("#prefixtype").html("");
-            str = '';
-            str = '<option value=0 selected=true>Elige una opción</option>';
-            document.getElementById("prefixtype").innerHTML = str;
-            $("#prefixtype").formSelect();
-        }
+                    }
+                };
+                document.getElementById("prefixtype").innerHTML = str;
+                $("#prefixtype").formSelect()
+            },
+        });
     });
 </script>
 {% endblock%}

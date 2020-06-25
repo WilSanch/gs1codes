@@ -446,7 +446,9 @@ class Common():
         return prefix[0]
     
     def CodeGenerator(prefix, range_id, quantity=0):
-        
+        if (not prefix):
+            return list()
+
         cat:Range = Range.objects.get(id=range_id)
         obj_prefix = Prefix.objects.get(id_prefix=prefix)
         prefix_code = obj_prefix.id

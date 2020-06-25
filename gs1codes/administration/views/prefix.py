@@ -130,14 +130,22 @@ def load_code_types(request): # Carga los tipos de código
 
 @login_required 
 def load_prefix_types(request): # Carga los tipos de prefijo
-    code_type = int(request.GET.get('codetype'))
-    code_types_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type).order_by('-range_id').distinct('range_id')
+    codeTypeId = int(request.GET.get('codetype'))
+    schemaId = int(request.GET.get('schemaId'))
 
     prefixtype = []
-    for ct in code_types_by_range:
-        o_range = Range.objects.get(id=ct.range_id)
-        data = {'id' : o_range.id, 'description': str(o_range.name) + ' - ' + str(o_range.quantity_code) + ' codigos' }
-        prefixtype.append(data)
+
+    code_types_by_schema = CodeTypeBySchemas.objects.get(code_type_id=codeTypeId,schema_id=schemaId)
+    data = {'give_prefix' : code_types_by_schema.give_prefix }
+    prefixtype.append(data)
+
+    if (schemaId == 1 and codeTypeId == 2):
+        code_types_by_range = CodeTypeByRanges.objects.filter(code_type_id=codeTypeId).order_by('-range_id').distinct('range_id')
+    
+        for ct in code_types_by_range:
+            o_range = Range.objects.get(id=ct.range_id)
+            data = {'id' : o_range.id, 'description': str(o_range.name) + ' - ' + str(o_range.quantity_code) + ' codigos' }
+            prefixtype.append(data)
     json_obj = simplejson.dumps(prefixtype)
 
     return HttpResponse(json_obj, content_type='application/json')
