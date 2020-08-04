@@ -243,7 +243,7 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         if not(ac.PrefixType):
             code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id)
 
-            if (ac.Quantity%10==0 or ac.Quantity==1):
+            if (ac.Quantity%10==0 or ac.Quantity==1) and (str(ac.Quantity)[1:1] == '1' ):
                 tmp_quantity = ac.Quantity
             else:
                 tmp_quantity = int( "1".ljust(len(str(ac.Quantity))+1, '0') )
