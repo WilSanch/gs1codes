@@ -108,6 +108,13 @@ def assignate_search_enterprise(request):
             context['Error'] = ""
 
             return render(request, 'administration/prefixTemplates/assignate.html',{"contexto": context})
+        
+        if (opc == 9):
+            enterprise:Enterprise = Enterprise.objects.filter(identification=str(option)).first()
+            enterprise.identification = str(option)
+ 
+            return redirect(reverse('enterprise_modify', args=[ enterprise ]))
+
         else:            
             return redirect(reverse('action_prefix', args=[ request.data['nit'],opc ]))
 
@@ -334,3 +341,40 @@ def update_validity_date_prefix(request):
         context['prefix_count'] = prefix_count
         
         return render(request, 'administration/prefixTemplates/update_validity_date.html',{"contexto": context})    
+
+# -----------------------------------------------------------------------------------------------------------
+# ----------------------------- Creación o modificación de empresa --------------------------------
+# -----------------------------------------------------------------------------------------------------------
+@login_required 
+def enterprise_modify(request, enterprise_obj):
+    if request.method == 'GET':        
+        context= {}
+
+        context['enterprise'] = enterprise_obj
+        context['Error'] = ""
+        return render(request, 'administration/enterpriseTemplates/enterprise.html',{"contexto": context})    
+    else:        
+        nit = request.POST.get("nit", None)
+        name = request.POST.get("name", None)
+        purchased = request.POST.get("purchased", None)
+        consumed = request.POST.get("consumed", None)
+        reserved = request.POST.get("reserved", None)
+       # observation = request.POST.get("observation", None)
+
+        enterprise_to_modify: Enterprise = Enterprise.objects.filter(identification=nit).first()
+
+        if not(enterprise_to_modify):
+            enterprise_to_modify.identification = nit
+        
+        enterprise_to_modify.enterprise_name = name
+        enterprise_to_modify.code_quantity_purchased = purchased
+        enterprise_to_modify.code_quantity_reserved = reserved
+        enterprise_to_modify.code_quantity_consumed = consumed
+        
+        with transaction.atomic():
+            enterprise_to_modify.save()
+           
+        context['Error'] = "Se guardó la empresa correctamente"
+        context['enterprise'] = enterprise_to_modify
+        
+        return render(request, 'administration/enterpriseTemplates/enterprise.html',{"contexto": context})    

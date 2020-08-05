@@ -49,25 +49,28 @@
 
 {% block JsPage%}
 <script>
-   
+
    $("#nit").change(function (e) {
         e.preventDefault();
         // get the nickname
         var nit = $(this).val();
-        // GET AJAX request
-        $.ajax({
-            type: 'GET',
-            url: "{% url 'validate_nit' %}",
-            data: {"nit": nit},
-            success: function (response) {
-                $('#name').val(response["enterprise_name"])
-            },
-            error: function (response) {
-                $('#name').val("")
-                $('#nit').val("")
-                alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
-            }
-        })
+        var process = $("#nit").val();
+        if (process != 9)
+        {
+            $.ajax({
+                type: 'GET',
+                url: "{% url 'validate_nit' %}",
+                data: {"nit": nit},
+                success: function (response) {
+                    $('#name').val(response["enterprise_name"])
+                },
+                error: function (response) {
+                    $('#name').val("")
+                    $('#nit').val("")
+                    alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+                }
+            })
+        }
     })
 </script>
 {% endblock%}

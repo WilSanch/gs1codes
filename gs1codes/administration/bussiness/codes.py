@@ -532,6 +532,7 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
                 new_code.prefix_id = existing_prefix.id
                 new_code.state_id = StCodes.Disponible.value
                 new_code.product_type_id = product_type
+                new_code.range_id = prefix.range_id
                 bulk_code.append(new_code)
 
             if (prefix.id == None):
@@ -546,6 +547,7 @@ def code_assignment(prefix, ac: CodeAssignmentRequest, username, range_prefix, e
             new_code.assignment_date = timezone.now()
             new_code.prefix_id = prefix.id
             new_code.state_id = StCodes.Disponible.value
+            new_code.range_id = prefix.range_id
             bulk_code.append(new_code)
 
         with transaction.atomic():
