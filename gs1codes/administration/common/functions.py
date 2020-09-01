@@ -433,7 +433,7 @@ class Common():
             intial = int(str(model_range.initial_value))
             final = int(str(model_range.final_value))
         else:
-            intial = int(str(model_range.country_code) + str(model_range.initial_value))
+            intial = int(str(model_range.country_code) + str(model_range.initial_value).zfill(len(str(model_range.final_value))))
             final = int(str(model_range.country_code) + str(model_range.final_value))
                 
         all_prefix_list = range(intial,final)        

@@ -89,8 +89,8 @@ def assignate_search_enterprise(request):
         return render(request, 'administration/prefixTemplates/assignate_search_enterprise.html',{"contexto": context})
     else:
         opc = int(request.POST.get('process', None))
+        option = str(request.data['nit'])
         if (opc == 1):
-            option = str(request.data['nit'])
             context= {}
             enterprise:Enterprise = Enterprise.objects.get(identification=str(option))
 
@@ -109,11 +109,8 @@ def assignate_search_enterprise(request):
 
             return render(request, 'administration/prefixTemplates/assignate.html',{"contexto": context})
         
-        if (opc == 9):
-            enterprise:Enterprise = Enterprise.objects.filter(identification=str(option)).first()
-            enterprise.identification = str(option)
- 
-            return redirect(reverse('enterprise_modify', args=[ enterprise ]))
+        if (opc == 9):                        
+            return redirect(reverse('enterprise_modify', args=[ option ]))
 
         else:            
             return redirect(reverse('action_prefix', args=[ request.data['nit'],opc ]))
@@ -346,9 +343,17 @@ def update_validity_date_prefix(request):
 # ----------------------------- Creación o modificación de empresa --------------------------------
 # -----------------------------------------------------------------------------------------------------------
 @login_required 
-def enterprise_modify(request, enterprise_obj):
+def enterprise_modify(request, enterprise):
     if request.method == 'GET':        
         context= {}
+        enterprise_obj: Enterprise = Enterprise.objects.filter(identification=enterprise).first()
+        if (not enterprise_obj):
+            enterprise_obj = Enterprise()
+            enterprise_obj.identification = enterprise
+            enterprise_obj.code_quantity_consumed = 0
+            enterprise_obj.code_quantity_purchased = 0
+            enterprise_obj.code_quantity_reserved = 0
+            enterprise_obj.code_residue = 0
 
         context['enterprise'] = enterprise_obj
         context['Error'] = ""
@@ -364,16 +369,21 @@ def enterprise_modify(request, enterprise_obj):
         enterprise_to_modify: Enterprise = Enterprise.objects.filter(identification=nit).first()
 
         if not(enterprise_to_modify):
+            enterprise_to_modify = Enterprise()
             enterprise_to_modify.identification = nit
         
         enterprise_to_modify.enterprise_name = name
-        enterprise_to_modify.code_quantity_purchased = purchased
-        enterprise_to_modify.code_quantity_reserved = reserved
-        enterprise_to_modify.code_quantity_consumed = consumed
+        enterprise_to_modify.code_quantity_purchased = int(purchased)
+        enterprise_to_modify.code_quantity_reserved = int(reserved)
+        enterprise_to_modify.code_quantity_consumed = int(consumed)
+        enterprise_to_modify.code_residue = 0
+        enterprise_to_modify.country_id = 170
+        enterprise_to_modify.enterprise_state = True
         
         with transaction.atomic():
             enterprise_to_modify.save()
-           
+        
+        context= {}
         context['Error'] = "Se guardó la empresa correctamente"
         context['enterprise'] = enterprise_to_modify
         

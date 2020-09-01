@@ -1,7 +1,7 @@
 {% extends 'administration/base.html' %}
 
 {% block content %}  
-    <form id="prefixregroup" action="codes/" method="post" enctype="multipart/form-data">
+    <form id="prefixregroup" action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <h6 class="center">Empresa</h6>
@@ -19,7 +19,7 @@
         <div class="row">
             <div class="col s3">
                 <label for="nit">(*) Nit de la empresa</label>
-                <input type="text" id="nit" name="nit" value="{{contexto.enterprise.identification}}" required readonly autocomplete="off">
+                <input type="text" id="nit" name="nit" value="{{contexto.enterprise.identification}}" required disabled autocomplete="off">
             </div>
             <div class="col s6">
                 <label for="name">(*) Razón social</label>
@@ -48,13 +48,12 @@
         -->
 
         <div class="row">
-            <button class="btn waves-effect waves-light Orangelogyca" type="submit" name="action">Guardar
-                <i class="material-icons right">arrow_forward</i>
-            </button>
-
             <a class="btn waves-effect waves-light grey" href="{% url 'assignate_search_enterprise' %}?obj=9">Cambiar Empresa
                 <i class="material-icons left">arrow_back</i>
             </a>
+            <button class="btn waves-effect waves-light Orangelogyca" type="submit" name="action">Guardar
+                <i class="material-icons right">arrow_forward</i>
+            </button>
         </div>
 
         <input id="error" type="hidden" value="{{ contexto.Error }}">
@@ -76,10 +75,5 @@
     {
         M.toast({ html: msj, classes: 'rounded Orangelogyca' })
     }
-
-    $(document).ready(function(){
-        var nit = $('#nit').val();
-        alert(nit);
-    });
 </script>
 {% endblock%}

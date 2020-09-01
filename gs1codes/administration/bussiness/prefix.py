@@ -458,3 +458,4 @@ def getPrefixesByEnterpriseId(id):
     dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id_prefix','quantity_code','type','schema','state','observation','assignment_date','validity_date','assigned','available','id','state_id','regrouping'])
 
     return dpcd.iterrows
+

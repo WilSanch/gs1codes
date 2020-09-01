@@ -10,7 +10,9 @@ def new_enterprise(ac: CodeAssignmentRequest):
         enterprise.enterprise_name = ac.BusinessName
         enterprise.code_quantity_purchased = 0
         enterprise.code_quantity_consumed = 0
+        enterprise.code_quantity_reserved = 0
         enterprise.code_residue = 0
+        enterprise.country_id = 170
         enterprise.enterprise_state = True
 
         enterprise.save()
