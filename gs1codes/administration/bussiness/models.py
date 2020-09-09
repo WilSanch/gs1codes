@@ -135,3 +135,8 @@ class responseValidateExcel(TypedDict):
     valid: bool
     msj: str
     data: object
+
+class Prefix_Validate(TypedDict):
+    id : int
+    code_quantity_reserved : int
+    code_residue : int

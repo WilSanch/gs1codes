@@ -1,5 +1,5 @@
 from administration.bussiness.models import CodeAssignmentRequest
-from administration.models import Enterprise, Range
+from administration.models import Enterprise, Range,Prefix
 from django.db import models, IntegrityError
 
 def new_enterprise(ac: CodeAssignmentRequest):
@@ -55,3 +55,16 @@ def update_totals_enterprise(ac: CodeAssignmentRequest, enterprise: Enterprise, 
         
     
     return enterprise
+
+def update_prefix_code_residue(pf:Prefix):
+    try:
+        pf.save()
+        return(pf)
+    except IntegrityError:
+        return False
+
+def get_prefix_by_id(idPk):
+    try:
+        return Prefix.objects.get(id=idPk)
+    except IntegrityError:
+        return False

@@ -13,7 +13,10 @@ from administration.models.temporal import Code as tmpCode
 from administration.common.functions import Queries, Common
 from administration.bussiness.models import *
 from administration.common.constants import *
+from administration.bussiness.enterprise import update_prefix_code_residue,get_prefix_by_id
 from administration.models.core import ProductType, GpcCategory, MeasureUnit, Prefix, Range, Code, Country, AtcCategory, TextilCategory, Brand, Code_Gtin14, Enterprise
+import collections
+
 
 class ProductTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -105,9 +108,27 @@ def UpdateCodes(df):
         tmpCode.objects.bulk_create(Code(**vals) for vals in df.to_dict('records'))
         q2 = Queries.upsertCode()
         cur.execute(q2)
+        update_code_quantity_consumed(df)
         return 'InsertOK'
     except Exception as ex:
         return ex
+def update_code_quantity_consumed(df):
+    print (df)
+    prefix_list =[]
+        #se itera el dataframe y se agrega a una lista
+    for index, row  in df.iterrows():
+        prefix_id = row['prefix_id']
+        prefix_list.append(prefix_id)     
+    counter=collections.Counter(prefix_list)
+    #Agrupacion por id y cantidad
+    for index,element in enumerate(counter):
+        #consultamos por id el elemento a actualizar
+        pf = get_prefix_by_id(element)
+        #lógica de negocio consulta disponibles etc
+        pf.code_quantity_consumed = (pf.code_quantity_consumed + counter[element])
+        update_prefix_code_residue(pf)
+
+        return 'Insert_code_quantity_consumed_OK'
 
 def codigosRepetidosfn(codigos):
     df = pd.DataFrame(data=codigos)
