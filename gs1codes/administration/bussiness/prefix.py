@@ -127,10 +127,11 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
         if (combination.give_prefix == 1):
             ac.Quantity = selected_range.quantity_code
 
-            with transaction.atomic():
-                list_registry = List()
+           
+            list_registry = []
                 
-                for x in range(1, quantity+1):
+            for x in range(1, quantity+1):
+                with transaction.atomic():
                     assigned_prefix = Common.PrefixGenerator(selected_range.id)
 
                     new_prefix.id_prefix = assigned_prefix
@@ -146,8 +147,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     new_prefix.code_quantity_reserved = selected_range.quantity_code
                     new_prefix.code_residue = 0
                     
-                    with transaction.atomic():
-                        new_prefix.save()
+                    new_prefix.save()
 
                     pref_registry = PrefixRegistry()
                     pref_registry["key"] = str(new_prefix.id_prefix)
@@ -161,9 +161,11 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
 
                     with transaction.atomic():
                         result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
-                
+
+                    new_prefix = Prefix() 
+            
                 # Add license batch
-                rta = AddLicenseBatch(list_registry)
+                #rta = AddLicenseBatch(list_registry)
         else:
             if (create_new_prefix == True):
                 assigned_prefix = Common.PrefixGenerator(selected_range.id)
@@ -194,8 +196,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
 
                 # Add license 
-                rta = AddLicense(pref_registry)
-                result = rta
+                #rta = AddLicense(pref_registry)
+                #result = rta
 
             if (existing_prefix is not None):
                 if (create_new_prefix == True):
