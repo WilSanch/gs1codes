@@ -12,6 +12,7 @@ from administration.bussiness.codes import code_assignment
 from administration.common.constants import UserMessages, PrefixRangeType, CodeType as Code_Type, StCodes
 from administration.common.functions import Common,Queries
 import pandas as pd
+from administration.bussiness.activate import *
 
 def update_validity_date_prefix(model: Prefix):
     schema:Schema = Schema.objects.filter(id=model.schema_id).first()
@@ -127,6 +128,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             ac.Quantity = selected_range.quantity_code
 
             with transaction.atomic():
+                list_registry = List()
+                
                 for x in range(1, quantity+1):
                     assigned_prefix = Common.PrefixGenerator(selected_range.id)
 
@@ -146,8 +149,21 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     with transaction.atomic():
                         new_prefix.save()
 
+                    pref_registry = PrefixRegistry()
+                    pref_registry["key"] = str(new_prefix.id_prefix)
+                    pref_registry["type"] = "gcp"
+                    pref_registry["companyName"] = enterprise.enterprise_name
+                    pref_registry["status"] = 1
+
+                    list_registry.append(pref_registry)
+
+                    pref_registry = PrefixRegistry()
+
                     with transaction.atomic():
                         result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
+                
+                # Add license batch
+                rta = AddLicenseBatch(list_registry)
         else:
             if (create_new_prefix == True):
                 assigned_prefix = Common.PrefixGenerator(selected_range.id)
@@ -167,8 +183,19 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                 with transaction.atomic():
                     new_prefix.save()
 
-            with transaction.atomic():
-                result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
+                pref_registry = PrefixRegistry()
+                
+                pref_registry["key"] = str(new_prefix.id_prefix)
+                pref_registry["type"] = "gcp"
+                pref_registry["companyName"] = enterprise.enterprise_name
+                pref_registry["status"] = 1
+
+                with transaction.atomic():
+                    result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
+
+                # Add license 
+                rta = AddLicense(pref_registry)
+                result = rta
 
             if (existing_prefix is not None):
                 if (create_new_prefix == True):
@@ -179,7 +206,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     existing_prefix.code_residue -= ac.Quantity
 
                 with transaction.atomic():
-                    existing_prefix.save()
+                    existing_prefix.save()                    
+                    result = ""
        
         if (result != ""):
             transaction.set_rollback(True)

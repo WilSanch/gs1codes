@@ -16,6 +16,7 @@ from administration.common.constants import *
 from administration.bussiness.enterprise import update_prefix_code_residue,get_prefix_by_id
 from administration.models.core import ProductType, GpcCategory, MeasureUnit, Prefix, Range, Code, Country, AtcCategory, TextilCategory, Brand, Code_Gtin14, Enterprise
 import collections
+from administration.bussiness.activate import VerifiedGs1
 
 
 class ProductTypeSerializer(serializers.ModelSerializer):
@@ -109,6 +110,8 @@ def UpdateCodes(df):
         q2 = Queries.upsertCode()
         cur.execute(q2)
         update_code_quantity_consumed(df)
+        # llamar metodo verified con el df
+        VerifiedGs1(df)
         return 'InsertOK'
     except Exception as ex:
         return ex

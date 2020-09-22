@@ -1,6 +1,7 @@
 from typing import TypedDict, List
-from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType, TransferProcess
+from administration.common.constants import CodeType, SchemaCodes, PrefixRangeType, TransferProcess, ProductType
 from datetime import datetime
+from enum import Enum
 
 class MarkedCode(TypedDict):
     """
@@ -140,3 +141,85 @@ class Prefix_Validate(TypedDict):
     id : int
     code_quantity_reserved : int
     code_residue : int
+
+# Registry models ---------------------------------------------------------
+
+class PrefixRegistry(TypedDict):
+    key: str
+    type: str
+    companyName: str
+    status: int
+
+class ResponseGetRegistry(TypedDict):
+    Key: str
+    Type: str
+    Status: int
+    CompanyName: str
+    IssuerGLN: str
+    LicenseeGLN: str
+    DataSourceGLN: str
+
+# Verified models ---------------------------------------------------------
+class BrandName(TypedDict):
+    Lang: str
+    Value: str
+
+class NetContent(TypedDict):
+    Quantity: float
+    MeasurementUnitCode: str
+
+class TradeItemDescription(TypedDict):
+    Lang: str
+    Value: str
+
+class TradeItemImageUrl(TypedDict):
+    Lang: str
+    Value: str
+
+class CodesVerified(TypedDict):
+    Codes: str
+
+class GtinVerified(TypedDict):
+    Gtin: str
+    BrandName: List[BrandName]
+    GpcCode: str
+    NetContent: List[NetContent]
+    Status: str
+    TargetMarketCountryCode: List[str]
+    TradeItemDescription: List[TradeItemDescription]
+    TradeItemImageUrl: List[TradeItemImageUrl]
+
+class CodeASCext(TypedDict):
+    Brand: str
+    GpcCode: str
+    Cant: float
+    Measure: int
+    Target: str
+    Url: str
+
+# Update Url Gtin models ---------------------------------------------------------
+#class GtinExt(TypedDict):
+#    Gtin: float
+#    TipoProducto: ProductType
+#    Brand: str
+#    TargetMarket: str
+#    Gpc: str
+#    Url: str
+#    MeasureUnit: int
+#    Quantity: int
+
+#class UpdateUrlGtin(TypedDict):
+#    Nit: str
+#    Gtins: List[GtinExt]
+
+#class CodigoRespuestaUpdateUrl(Enum):
+#    Existoso = "Exitoso"
+#    ProblemaDesconocido = "ProblemaDesconocido"
+
+#class UpdateUrlGtinResult(TypedDict):
+#    GtinCreados: List[float]
+#    GtinActualizados: List[float]
+#    Mesagge: str
+#    Respuesta: CodigoRespuestaUpdateUrl
+
+# ----------------------------------------------------------------------
