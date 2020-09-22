@@ -109,7 +109,7 @@
                   Descripción código AD</a></li>
               <li><a class="waves-effect waves-blue" href="{% url 'Cargue'%}"><i class="material-icons">assignment</i>Cargue portafolio
                   miembros</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Resultado
+              <li><a class="waves-effect waves-blue" href="{% url 'cargue_resultado'%}"><i class="material-icons">assignment</i>Resultado
                   portafolio miembros</a></li>
               <li>
                 <div class="divider"></div>
@@ -190,7 +190,7 @@
   <script type="text/javascript" src="{% static 'administration/js/vfs_fonts.js' %}"></script>
   <script type="text/javascript" src="{% static 'administration/js/datatables.min.js' %}"></script>
   <script type="text/javascript" src="{% static 'administration/js/DjangoAjax.js' %}"></script>
-  
+    
   <script>
     $(document).ready(function () {
       $('.sidenav').sidenav({});

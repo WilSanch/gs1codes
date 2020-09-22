@@ -1,10 +1,11 @@
 from django.urls import path
-from . import views 
+from . import views
 from administration.views.core import ptlist,GetCategoriesGPC,ptdetail,GetMeasureUnits
 from administration.views.prefix import load_enterprise
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 from django.conf.urls import url
+from administration.views.CarguePortafolio import (loadResultList)
 
 schema_view = get_swagger_view(title='API Codes GS1')
 
@@ -45,6 +46,7 @@ urlpatterns = [
     path('report/', views.report, name='report'),
     path('PowerBI/', views.reportPowerBI, name='PowerBI'),
     path('Cargue/', views.cargue, name='Cargue'),
+    path('cargue_resultado/', loadResultList, name='cargue_resultado'),
     path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
 ]

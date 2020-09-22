@@ -13,7 +13,7 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
+from django.core import serializers
 
 @login_required 
 @api_view(['GET','POST'])     
@@ -43,4 +43,14 @@ def procesaBlobs(request, format=None):
     rta = ProcesarBlob()
     msj = {"mensaje":"Blobs Procesados"}
     return JsonResponse(msj) 
-        
+
+@login_required 
+@api_view(['GET', 'POST'])
+def loadResultList(request, format=None):
+    if "GET" == request.method:
+        return render(request, 'administration/frontTemplates/cargue_resultado.html')
+    if "POST" == request.method:
+        nit = request.POST['nit']
+        pf = logPortfolioUploadList(nit)
+        dictionaries = [ obj for obj in pf.values() ]        
+        return JsonResponse({"data": dictionaries}, safe=False)

@@ -1,0 +1,174 @@
+{% extends 'administration/base.html' %}
+{% block title%}Excel{% endblock %}
+{% block content %}
+
+<h5 class="center">Lista Portafolio</h5>
+<form id="prefixSearch" action="../cargue_resultado/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+        <input id="process" name="process" type="hidden" value="{{ contexto.process }}">
+        <div class="col s3">
+            <label for="nit">Nit de la empresa</label>
+            <input type="text" id="nit" name="nit" value="" required autocomplete="off"><br><br>
+        </div>
+        <div class="col s9">
+            <label for="name">Razón social</label>
+            <input type="text" id="name" name="name" value="{{contexto.enterprise_name}}" readonly><br><br>
+        </div>
+    </div>
+    
+    <div class="row">
+        <button class="btn waves-effect waves-light Orangelogyca" type="submit" id="btnBucar" name="action" value="prueba" >Buscar Empresa
+            <i class="material-icons right">send</i>
+        </button>
+    </div>
+
+    <input id="error" type="hidden" value="">
+</form>
+
+
+<form id="carguePortafolio" action="/codes/cargue_resultado/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+
+</form>
+<p></p>
+<hr>
+<input id="error" type="hidden" value="{{ Error }}">
+<h6 class="center">Archivos Procesados</h6>
+
+<div class="row">  
+     
+    
+    <table id="data-table" class="table table-bordered" style="width:100%" >  
+         <thead>  
+              <tr>  
+                   <th>ID</th>  
+                   <th>NIT</th>  
+                   <th>USUARIO</th> 
+                   <th>EJECUCIÓN</th> 
+                   <th>RESPUESTA</th>
+                   <th>ID_CODIGOS</th>
+              </tr>  
+         </thead>  
+    </table>  
+</div> 
+
+<div class="row">  
+    <table id="data-table-resultado" class="table table-bordered">  
+         <thead>  
+              <tr>  
+                   <th>CODIGO</th>  
+                   <th>DESCRIPCIÓN</th>  
+                   <th>MENSAJE</th> 
+              </tr>  
+         </thead>  
+    </table>  
+</div>
+
+
+{% endblock %}
+
+{% block JsPage%}
+<script>
+
+   $("#nit").change(function (e) {
+        e.preventDefault();
+        // get the nickname
+        var nit = $(this).val();
+        var process = $("#process").val();
+        
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'validate_nit' %}",
+            data: {"nit": nit},
+            success: function (response) {
+                $('#name').val(response["enterprise_name"])
+            },
+            error: function (response) {
+                $('#name').val("")
+                if (process != 9)
+                {
+                    $('#nit').val("")
+                    alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+                }
+            }
+        })
+    })
+    
+    $('#prefixSearch').submit((event) => {
+        event.preventDefault();
+        let nit = $('#nit').val();
+        if(nit !== null && nit !== ""){
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cargue_resultado' %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "nit": nit
+                },
+                beforeSend: function(){
+                    console.log("Enviando request...");
+                },
+                success: function (response) {
+                    pintarTablaCargue(response.data);
+                },
+                
+                error: function (response) {
+                    data = JSON.parse(response["data"]);
+
+                    if (process != 9)
+                    {
+                        $('#nit').val("")
+                        alert('No se encontró una empresa con el nit ' + nit + '. Por favor verifique!')
+                    }
+
+                }
+            });
+        } else {
+            M.toast({ html: 'El campo nit no puede estar vacío.', classes: 'rounded Orangelogyca' });
+        }
+    });
+
+    function pintarTablaCargue(data){
+        $('#data-table').DataTable().destroy();
+        $('#data-table').DataTable({
+            "data": data,
+            "columns": [
+                { "data": "id" },
+                { "data": "nit" },
+                { "data": "user" },
+                { "data": "execution_date", render: function (dataField) { return dataField.split("T")[0] +" "+ dataField.split("T")[1].split(".")[0];} },
+                { "data": "reply.MensajeUI" },
+                { "data": "", "title": "ID_CODIGOS", render: function(dataField) { return '<a href="#data-table-resultado" id="btnIdCodigo" class="btn btn-info btn-small" style="font-size: 0.7rem;">ver más</a>';}}
+            ], select: true,
+            lengthMenu: [
+                [15, 30, 45, -1],
+                ["15 Rows", "30 Rows", "45 Rows", "Todo"]
+            ],
+            language: {
+                searchPlaceholder: "Buscar Datos",
+                infoEmpty: "La tabla no tiene registros",
+                zeroRecords: "Uppps, No tenemos resultados para tu busqueda",
+            },
+        });
+
+        var table = $('#data-table').DataTable();
+        
+        $('#data-table tbody').on('click', 'tr', function () {
+            var data = table.row( this ).data();
+            let tableCodigos = $('#data-table-resultado').DataTable();
+            tableCodigos.destroy();
+            //pintar la otra tabla
+            $('#data-table-resultado').DataTable({
+            "data":data["reply"]["IdCodigos"],
+            "columns"     :     [  
+                {"data":"Cod"},  
+                {"data":"Desc"},
+                {"data":"Msj"}       
+                ]  
+            });
+        } );
+    }
+ 
+</script>
+{% endblock%}

@@ -2,6 +2,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from simple_history.models import HistoricalRecords
+from django.contrib.postgres.fields import JSONField
+
 
 class State(models.Model):
     """ 
@@ -845,4 +847,33 @@ class CodeTypeBySchemas(models.Model):
 
     def get_absolute_url(self):
         return reverse("CodeTypeBySchemas_detail", kwargs={"pk": self.pk})
- 
+
+class LogPortfolioUpload(models.Model):
+
+    id = models.BigAutoField(primary_key=True)
+    
+    """
+    Documento de indentificacion
+    """
+    nit =  models.CharField(max_length=20,null=True)
+
+
+    """ 
+    user
+    """
+    
+    user = models.CharField(max_length=50)
+    
+    """
+    Fecha de almacenado 
+    """
+    
+    execution_date = models.DateTimeField(blank=True, null=True)
+    #models.DateTimeField(blank=True, null=True)
+    """
+    Json de respuesta
+    """
+    reply = JSONField()
+    
+    history = HistoricalRecords()
+

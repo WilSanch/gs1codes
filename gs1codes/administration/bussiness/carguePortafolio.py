@@ -14,7 +14,7 @@ from administration.common.functions import Queries, Common
 from administration.bussiness.models import *
 from administration.common.constants import *
 from datetime import datetime, timedelta
-from administration.models.core import Enterprise, ProductType, Country, MeasureUnit, GpcCategory, TextilCategory, AtcCategory, ProductState
+from administration.models.core import Enterprise, ProductType, Country, MeasureUnit, GpcCategory, TextilCategory, AtcCategory, ProductState,LogPortfolioUpload
 from azure.storage.blob import (
     BlockBlobService,
     ContainerPermissions,
@@ -183,7 +183,22 @@ def markGtin13(df,Nit):
             "MeasureUnit": MeasureUnit.objects.filter(description=row['UnidadMedida'])[0].id,
             "Quantity":row['CantidadEnvase']})    
     rta = mcodes.mark_codes(jsonGtin13)
+    insert_LogPortfolioUpload(rta,Nit)
     print(rta)
+    return rta
+    
+def insert_LogPortfolioUpload(rta,Nit):
+    try: 
+        lp = LogPortfolioUpload()
+        lp.id
+        lp.nit=(Nit)
+        lp.user = ("CARLOS")
+        lp.execution_date = timezone.now()
+        lp.reply = (rta)
+        lp.save()
+        return "log ok"
+    except Exception:
+        return print("error al cguardar log")
 
 def markGtin14(df,Nit):
     rta = {}
@@ -199,3 +214,9 @@ def markGtin14(df,Nit):
         res = mcodes.RegistryGtin14(jsonGtin14)
         rta['Request'].append(res)    
     print(rta)
+
+def logPortfolioUploadList(idPk):
+    try:
+        return LogPortfolioUpload.objects.filter(nit=idPk)
+    except IntegrityError:
+        return False

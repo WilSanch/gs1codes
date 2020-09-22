@@ -65,6 +65,6 @@ def update_prefix_code_residue(pf:Prefix):
 
 def get_prefix_by_id(idPk):
     try:
-        return Prefix.objects.get(id=idPk)
+        return Prefix.objects.get(nit=idPk)
     except IntegrityError:
         return False
