@@ -114,7 +114,7 @@ def assignate_search_enterprise(request):
 
         if (opc == 10):
             prueba = request.data['nit']
-            return redirect(reverse('update_ad', args=[prueba]))
+            return redirect(reverse('updateAdList', args=[prueba]))
 
         else:            
             return redirect(reverse('action_prefix', args=[ request.data['nit'],opc ]))
@@ -397,8 +397,8 @@ def enterprise_modify(request, enterprise):
         return render(request, 'administration/enterpriseTemplates/enterprise.html',{"contexto": context})    
 
 @login_required 
-@api_view(['GET', 'POST'])
-def updateAd(request,enterprise_nit):
+@api_view(['GET'])
+def updateAdList(request,enterprise_nit):
     if "GET" == request.method:
         context= {}
         enterprise_obj = Enterprise.objects.filter(identification=enterprise_nit).first()
@@ -408,6 +408,10 @@ def updateAd(request,enterprise_nit):
         context['Error'] = ""
         context['enterprise'] = enterprise_obj
         return render(request, 'administration/prefixTemplates/update_ad.html',{"contexto": context})
+
+@login_required 
+@api_view(['POST'])
+def updateAd(request):        
     if "POST" == request.method:
         c = Code()
         c.id = request.POST['id']
@@ -415,5 +419,7 @@ def updateAd(request,enterprise_nit):
         c.save(update_fields=['description'])
         
         context= {}
-        context['Error'] = "Se guardó la empresa correctamente"
+        context['Error'] = "Se actualizo el AD correctamente"
         return render(request, 'administration/prefixTemplates/update_ad.html',{"contexto": context})
+        
+    
