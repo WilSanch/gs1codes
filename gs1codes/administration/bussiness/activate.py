@@ -24,12 +24,13 @@ def AddLicenseBatch(lpref: List[PrefixRegistry]):
     if rest_response.status_code == 202 or rest_response.status_code == 200:
         res= rest_response.content
         my_json = res.decode('utf8').replace("'", '"')
-        data = json.loads(my_json)
+        resp = json.loads(my_json)
+        resp = ""
     else:
         resp = "Error en el servicio al intentar crear la licensia del prefijo. Método: AddLicenses. Error: " + str(rest_response.reason)
    
     # rta2 = JsonConvert.DeserializeObject(rta);
-    return data
+    return resp
 
 
 def AddLicense(pref: PrefixRegistry):
@@ -44,6 +45,7 @@ def AddLicense(pref: PrefixRegistry):
         res= rest_response.content
         my_json = res.decode('utf8').replace("'", '"')
         resp = json.loads(my_json)
+        resp = ""
     else:
         resp = "Error en el servicio al intentar crear la licensia del prefijo. Método: AddLicense. Error: " + str(rest_response.reason)
     
@@ -101,39 +103,39 @@ def VerifiedGs1(okCodes: List[CodesVerified]):
 
                 AddPrefRegistry = AddLicense(obj_registry)
 
-                obj_brand = BrandName()
-                obj_brand.Lang = language
-                obj_brand.Value = obj_code.brand
+            obj_brand = BrandName()
+            obj_brand.Lang = language
+            obj_brand.Value = obj_code.brand
 
-                obj_net_content = NetContent()
-                obj_net_content.Quantity = obj_code.quantity_code
-                obj_net_content.MeasurementUnitCode = obj_code.measure_unit
+            obj_net_content = NetContent()
+            obj_net_content.Quantity = obj_code.quantity_code
+            obj_net_content.MeasurementUnitCode = obj_code.measure_unit
 
-                targetMarketCountryCode = obj_code.target_market
+            targetMarketCountryCode = obj_code.target_market
 
-                obj_trade_item = TradeItemDescription()
-                obj_trade_item.Lang = language
-                obj_trade_item.Value = obj_code.description
+            obj_trade_item = TradeItemDescription()
+            obj_trade_item.Lang = language
+            obj_trade_item.Value = obj_code.description
 
-                obj_trade_image = TradeItemImageUrl()
-                obj_trade_image.Lang = language
-                obj_trade_image.Value = obj_code.url
+            obj_trade_image = TradeItemImageUrl()
+            obj_trade_image.Lang = language
+            obj_trade_image.Value = obj_code.url
 
-                obj_gtin = GtinVerified()
+            obj_gtin = GtinVerified()
 
-                obj_gtin.Gtin = str(obj_code.id).zfill(14)
-                obj_gtin.BrandName = list(obj_brand)
-                obj_gtin.GpcCode = obj_code.gpc_category
-                obj_gtin.NetContent = list(obj_net_content)
-                obj_gtin.Status = "ACTIVE"
-                obj_gtin.TargetMarketCountryCode = list(targetMarketCountryCode)
-                obj_gtin.TradeItemDescription = list(obj_trade_item)
+            obj_gtin.Gtin = str(obj_code.id).zfill(14)
+            obj_gtin.BrandName = list(obj_brand)
+            obj_gtin.GpcCode = obj_code.gpc_category
+            obj_gtin.NetContent = list(obj_net_content)
+            obj_gtin.Status = "ACTIVE"
+            obj_gtin.TargetMarketCountryCode = list(targetMarketCountryCode)
+            obj_gtin.TradeItemDescription = list(obj_trade_item)
 
-                if (obj_trade_image.Value != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
-                    obj_gtin.tradeItemImageUrl = list(obj_trade_image)
-                
-                listGtins.append(obj_gtin)
-                obj_gtin = None
+            if (obj_trade_image.Value != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
+                obj_gtin.tradeItemImageUrl = list(obj_trade_image)
+            
+            listGtins.append(obj_gtin)
+            obj_gtin = None
     
     rta = AddGtinsBatch(listGtins)
 

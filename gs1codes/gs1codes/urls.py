@@ -3,6 +3,7 @@ from django.urls import path
 from django.conf.urls import url, include
 from administration.views.Index import *
 
+
 urlpatterns = [
     url(r'^$', Index, name='index'),
     path('accounts/', include('django.contrib.auth.urls')),

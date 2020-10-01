@@ -24,7 +24,7 @@ def cargue(request, format=None):
     else:
         excel_file_upload = request.data["excel_file"]
         filename = excel_file_upload.name
-        data = request.data["excel_file"].read()     
+        data = request.data["excel_file"].read()
         #validacion estructura y extension del archivo excel.
         valida = validaExcel(excel_file_upload)
         

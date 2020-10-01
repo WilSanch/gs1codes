@@ -23,6 +23,7 @@ from azure.storage.blob import (
 )
 from administration.bussiness import codes as mcodes
 
+
 def validaExcel(excel):
     ResponseValidateExcel = responseValidateExcel
         
@@ -65,12 +66,17 @@ def validaExcel(excel):
 
     return ResponseValidateExcel
 
-def cargaBlob(filename, binary):  
+def cargaBlob(filename, binary, container_name_tmp=None):  
     
     try:  
         account_name = 'archivoscodigos'
         account_key = 'pbAL1EdRiappAAeF9T4y1DhJFT9/Bx0YpvR2CZ3x+UjEF1bfh28c+L3mDncz8jexX4/w6TUKNzMvHsXv59I7/A=='
-        container_name = 'portafolionuevoasc'
+        
+        if container_name_tmp == None:
+            container_name = 'portafolionuevoasc'
+        else:
+            container_name = container_name_tmp
+
         blob = BlockBlobService(account_name=account_name, account_key=account_key, socket_timeout=300)
         # upload file
         blob.create_blob_from_text(container_name, filename, binary)
@@ -90,20 +96,26 @@ def cargaBlob(filename, binary):
         print('data_exception::', data)
         return data
 
-def listaArchivosBlob():
+def listaArchivosBlob(container_name_tmp=None):
     try:  
         account_name = 'archivoscodigos'
         account_key = 'pbAL1EdRiappAAeF9T4y1DhJFT9/Bx0YpvR2CZ3x+UjEF1bfh28c+L3mDncz8jexX4/w6TUKNzMvHsXv59I7/A=='
-        container_name = 'portafolionuevoasc'
+        if container_name_tmp == None:
+            container_name = 'portafolionuevoasc'
+        else:
+            container_name = container_name_tmp
         blob = BlockBlobService(account_name=account_name, account_key=account_key, socket_timeout=300)
         listaArchivos = blob.list_blobs(container_name)
         lista =[]
         for blob in listaArchivos:
+            fecha_blob = blob.properties.creation_time
             lista.append({
                 "nombre": blob.name,
-                "fecha": str(blob.properties.creation_time)
+                "fecha": str(blob.properties.creation_time),
+                "fecha_formato": str(fecha_blob.day).zfill(2) + "/" + str(fecha_blob.month).zfill(2) + "/" + str(fecha_blob.year) + " " + str(fecha_blob.hour).zfill(2) + ":" + str(fecha_blob.minute).zfill(2) + ":" + str(fecha_blob.second).zfill(2)
             })
-            print("\t" + blob.name + ' ' + str(blob.properties.creation_time))
+            if container_name_tmp == None:
+                print("\t" + blob.name + ' ' + str(blob.properties.creation_time))
             
         return lista
     except Exception as error:

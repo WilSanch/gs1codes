@@ -6,7 +6,8 @@ from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 from django.conf.urls import url
 from administration.views.CarguePortafolio import (loadResultList)
-
+from django.conf import settings
+from django.conf.urls.static import static
 schema_view = get_swagger_view(title='API Codes GS1')
 
 urlpatterns = [
@@ -47,6 +48,7 @@ urlpatterns = [
     path('PowerBI/', views.reportPowerBI, name='PowerBI'),
     path('Cargue/', views.cargue, name='Cargue'),
     path('cargue_resultado/', loadResultList, name='cargue_resultado'),
+    path('cargue_archivo/<opc>/', views.cargue_archivo, name='CargueArchivo'), 
     path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

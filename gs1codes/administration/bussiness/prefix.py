@@ -164,8 +164,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
 
                     new_prefix = Prefix() 
             
-                # Add license batch
-                #rta = AddLicenseBatch(list_registry)
+            # Add license batch
+            rta = AddLicenseBatch(list_registry)
         else:
             if (create_new_prefix == True):
                 assigned_prefix = Common.PrefixGenerator(selected_range.id)
@@ -196,8 +196,8 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
 
                 # Add license 
-                #rta = AddLicense(pref_registry)
-                #result = rta
+                rta = AddLicense(pref_registry)
+                result = rta
 
             if (existing_prefix is not None):
                 if (create_new_prefix == True):

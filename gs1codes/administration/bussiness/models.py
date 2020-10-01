@@ -197,6 +197,9 @@ class CodeASCext(TypedDict):
     Target: str
     Url: str
 
+class ErrorList(TypedDict):
+    IdRegistro: int
+    MsgError: str
 # Update Url Gtin models ---------------------------------------------------------
 #class GtinExt(TypedDict):
 #    Gtin: float

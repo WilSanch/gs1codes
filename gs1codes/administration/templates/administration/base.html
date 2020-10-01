@@ -100,9 +100,9 @@
               style="margin-right:0;">arrow_drop_down</i></a>
           <div class="collapsible-body">
             <ul>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Cargar archivo de
+              <li><a class="waves-effect waves-blue" href="{% url 'CargueArchivo' opc=1 %}"><i class="material-icons">assignment</i>Cargar archivo de
                   devolución</a></li>
-              <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Inactivación
+              <li><a class="waves-effect waves-blue" href="{% url 'CargueArchivo' opc=2 %}"><i class="material-icons">assignment</i>Inactivación
                   masiva de prefijos</a></li>
               <li><a class="waves-effect waves-blue" href="{% url 'assignate_search_enterprise'%}?obj=9"><i class="material-icons">assignment</i>Empresas</a></li>
               <li><a class="waves-effect waves-blue" href="#"><i class="material-icons">assignment</i>Cambiar
