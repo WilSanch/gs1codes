@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 from administration.views.core import ptlist,GetCategoriesGPC,ptdetail,GetMeasureUnits
-from administration.views.prefix import load_enterprise
+from administration.views.prefix import (load_enterprise,updateAd)
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 from django.conf.urls import url
@@ -49,6 +49,7 @@ urlpatterns = [
     path('Cargue/', views.cargue, name='Cargue'),
     path('cargue_resultado/', loadResultList, name='cargue_resultado'),
     path('cargue_archivo/<opc>/', views.cargue_archivo, name='CargueArchivo'), 
+    url(r'^update_ad/(?P<enterprise_nit>[-a-zA-Z0-9_]+)/$', updateAd, name='update_ad'),
     path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,5 @@
 <h6 class="center">CÓDIGOS</h6>
 <input type="text" id="filter_code" placeholder="Buscar...">
-
 <table class="table stripped"  style="white-space: nowrap;" id="tbl_codes_table">         
     <thead>
         <tr>
@@ -34,6 +33,36 @@
         {% endfor %}
     </tbody>
 </table>
+{% if contexto.opc == 10 %}
+ <!-- Modal Trigger -->
+ <a class="waves-effect waves-light btn modal-trigger" href="#modalupdate">Actualizar</a>
+
+ <!-- Modal Structure -->
+ <div id="modalupdate" class="modal">
+   <div class="modal-content">
+     <h4>Actualizar</h4>
+     <h6 class="modal-title"></h6>
+     <h4>Descripción</h4>
+     <div >
+        <h6 class="modal-body"></h6>
+    </div>
+     <!--<p>A bunch of text</p>-->
+     <div class="input-field col s4">
+        <input id="new_ad" type="text" class="validate">
+        <label for="first_name">Nueva Descripción</label>
+     </div>
+
+   </div>
+   
+   <div class="modal-footer">
+     <a id="submit" type="submit"  class="modal-close waves-effect waves-green btn-flat"  >Actualizar</a>
+   </div>
+ </div>
+ <input id="error" type="hidden" value="{{ contexto.Error }}">
+{% endif %}
+
+    
+
 <script>
     $(document).ready(function(){
         var obj_tbl= $('#tbl_codes_table').DataTable({
@@ -42,19 +71,51 @@
             buttons: {
                 name: 'secondary',
                 buttons: ['excel']
-            }
+            },select: true,
         });
-
+        
         $('#filter_code').keyup(function(){
             obj_tbl.search($(this).val()).draw() ;
         })
+        $('#tbl_codes_table tbody').on( 'click', 'tr', function () {
+            const clickedRow = (obj_tbl.row( this ).data());
+            const modalTitle = (obj_tbl.row( this ).data()[0]);;
+            const modalBody = (obj_tbl.row( this ).data()[1]);;
+            $('#modalupdate .modal-title').text(modalTitle);
+            $('#modalupdate .modal-body').text(modalBody);
+            $('#modalupdate').modal();
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            //let id = 7708405828016;
+            //let description = "lala";
+            //var description="pruebas10";
+            $('#submit').click(function(e)
+            {
+                e.preventDefault();
+                            $.ajax({
+                    type: 'POST',
+                    url: "{% url 'update_ad' %}",
+                    headers: {'X-CSRFToken': csrftoken},
+                    data: {
+                        //"csrfmiddlewaretoken": "{{ csrf_token }}",
+                        "id": modalTitle,
+                        "description": $('#new_ad').val()
+                    },
+                    beforeSend: function(){
+                        //console.log("Enviando request...");
+                    },
+                    success: function (response) {
+                        //alert("actualizado correctamente");
+                        //$("#tbl_codes_table").ajax.reload();
+                    },
+                    
+                });
+                
+            });       
+        });
     });
-    
-
     $("#tbl_codes_table").on("click", "#btnInactive", function() {
         var currentRow=$(this).closest("tr");
         var codeId = currentRow.find("td:eq(0)").text();
-        
         $.ajax({
             url: "{% url 'ajax_function_2nd_grid' %}",
             data: {'codeid': codeId,

@@ -489,3 +489,10 @@ def getPrefixesByEnterpriseId(id):
 
     return dpcd.iterrows
 
+def getPrefixesByEnterpriseIdActive(id):
+    q1 = Queries.getPrefixesByEnterpriseActive(id)
+    cursor= connection.cursor()
+    cursor.execute(q1)
+    dpcd =  pd.DataFrame(cursor.fetchall(), columns=['id_prefix','quantity_code','type','schema','state','observation','assignment_date','validity_date','assigned','available','id','state_id','regrouping'])
+    return dpcd.iterrows
+

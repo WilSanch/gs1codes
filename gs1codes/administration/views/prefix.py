@@ -106,11 +106,15 @@ def assignate_search_enterprise(request):
             context['enterprise'] = enterprise
             context['prefix'] = prefix.getPrefixesByEnterpriseId(enterprise.id)
             context['Error'] = ""
-
-            return render(request, 'administration/prefixTemplates/assignate.html',{"contexto": context})
-        
+            if (opc == 1):
+                return render(request, 'administration/prefixTemplates/assignate.html',{"contexto": context})
+            
         if (opc == 9):                        
             return redirect(reverse('enterprise_modify', args=[ option ]))
+
+        if (opc == 10):
+            prueba = request.data['nit']
+            return redirect(reverse('update_ad', args=[prueba]))
 
         else:            
             return redirect(reverse('action_prefix', args=[ request.data['nit'],opc ]))
@@ -166,7 +170,10 @@ def load_prefix_table(request,opc):
     enterprise:Enterprise = Enterprise.objects.get(identification=nit)
     
     context['opc'] = opc
-    context['prefix'] = prefix.getPrefixesByEnterpriseId(enterprise.id)
+    if opc == 10:
+        context['prefix'] = prefix.getPrefixesByEnterpriseIdActive(enterprise.id)
+    else:
+        context['prefix'] = prefix.getPrefixesByEnterpriseId(enterprise.id)
 
     return render(request, 'administration/Partials/prefix_table.html',{"contexto": context})
 
@@ -388,3 +395,25 @@ def enterprise_modify(request, enterprise):
         context['enterprise'] = enterprise_to_modify
         
         return render(request, 'administration/enterpriseTemplates/enterprise.html',{"contexto": context})    
+
+@login_required 
+@api_view(['GET', 'POST'])
+def updateAd(request,enterprise_nit):
+    if "GET" == request.method:
+        context= {}
+        enterprise_obj = Enterprise.objects.filter(identification=enterprise_nit).first()
+        if (not enterprise_obj):
+            context['Error'] = "No se encontró la empresa"
+
+        context['Error'] = ""
+        context['enterprise'] = enterprise_obj
+        return render(request, 'administration/prefixTemplates/update_ad.html',{"contexto": context})
+    if "POST" == request.method:
+        c = Code()
+        c.id = request.POST['id']
+        c.description = request.POST['description']
+        c.save(update_fields=['description'])
+        
+        context= {}
+        context['Error'] = "Se guardó la empresa correctamente"
+        return render(request, 'administration/prefixTemplates/update_ad.html',{"contexto": context})
