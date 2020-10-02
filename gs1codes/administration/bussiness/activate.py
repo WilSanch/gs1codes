@@ -3,6 +3,7 @@ import requests, simplejson, json
 from administration.models import Code, Prefix, Enterprise
 from administration.common.constants import ProductTypeCodes, ProducState
 from typing import TypedDict, List
+import simplejson
 
 # Variables URL Activate --------------------------------------------------------
 # Url Api Test/Local
@@ -56,7 +57,7 @@ def GetLicense(pref: str):
     url = urlApi + "/Registry/SinlgeMethods/GetLicense/" + pref
     rest_response = requests.get(url)
    
-    if (rest_response.status_code == "202" or rest_response.status_code == "200"):
+    if (rest_response.status_code == 202 or rest_response.status_code == 200):
         resp = rest_response.content
     else:
         resp = str(None)
@@ -67,9 +68,9 @@ def GetLicense(pref: str):
 # Métodos Verified
 def AddGtinsBatch(lcode: List[GtinVerified]):
     url = urlApi + "/Verified/BatchMethods/CreateGtins"
-    #json_obj = simplejson.dumps(lcode)
+    json_obj = simplejson.dumps(lcode)
 
-    rest_response = requests.post(url, json=lcode)
+    rest_response = requests.post(url, json=json_obj)
    
     if (rest_response.status_code == "202" or rest_response.status_code == "200"):
         resp = rest_response.content
@@ -82,19 +83,19 @@ def VerifiedGs1(okCodes: List[CodesVerified]):
     listGtins = []
 
     for codes in okCodes:
-        obj_code: Code = Code.objects.filter(id_prefix=codes.Codes).first()
+        obj_code: Code = Code.objects.filter(id=codes['Codes']).first()
         
         if not obj_code:
             pass
 
-        if (obj_code.product_type == ProductTypeCodes.Producto.value and obj_code.product_state == ProducState.Acitvo_Publicado.value):
+        if (obj_code.product_type_id == ProductTypeCodes.Producto.value and obj_code.product_state_id == ProducState.Acitvo_Publicado.value):
             
             obj_prefix: Prefix = Prefix.objects.filter(id=obj_code.prefix_id).first()
             obj_enterprise: Enterprise = Enterprise.objects.filter(id=obj_prefix.enterprise_id).first()
 
-            obj_license: ResponseGetRegistry = GetLicense(obj_prefix.id_prefix)
+            obj_license: ResponseGetRegistry = GetLicense(str(obj_prefix.id_prefix))
 
-            if (obj_license.Status == 0):
+            if (obj_license['status'] == 0):
                 obj_registry = PrefixRegistry()
                 obj_registry.Key = obj_prefix.id_prefix
                 obj_registry.Type = "gcp"
@@ -104,35 +105,35 @@ def VerifiedGs1(okCodes: List[CodesVerified]):
                 AddPrefRegistry = AddLicense(obj_registry)
 
             obj_brand = BrandName()
-            obj_brand.Lang = language
-            obj_brand.Value = obj_code.brand
+            obj_brand['Lang'] = language
+            obj_brand['Value'] = obj_code.brand_id
 
             obj_net_content = NetContent()
-            obj_net_content.Quantity = obj_code.quantity_code
-            obj_net_content.MeasurementUnitCode = obj_code.measure_unit
+            obj_net_content['Quantity'] = obj_code.quantity_code
+            obj_net_content['MeasurementUnitCode'] = obj_code.measure_unit
 
-            targetMarketCountryCode = obj_code.target_market
+            targetMarketCountryCode = obj_code.target_market_id
 
             obj_trade_item = TradeItemDescription()
-            obj_trade_item.Lang = language
-            obj_trade_item.Value = obj_code.description
+            obj_trade_item['Lang'] = language
+            obj_trade_item['Value'] = obj_code.description
 
             obj_trade_image = TradeItemImageUrl()
-            obj_trade_image.Lang = language
-            obj_trade_image.Value = obj_code.url
+            obj_trade_image['Lang'] = language
+            obj_trade_image['Value'] = obj_code.url
 
             obj_gtin = GtinVerified()
 
-            obj_gtin.Gtin = str(obj_code.id).zfill(14)
-            obj_gtin.BrandName = list(obj_brand)
-            obj_gtin.GpcCode = obj_code.gpc_category
-            obj_gtin.NetContent = list(obj_net_content)
-            obj_gtin.Status = "ACTIVE"
-            obj_gtin.TargetMarketCountryCode = list(targetMarketCountryCode)
-            obj_gtin.TradeItemDescription = list(obj_trade_item)
+            obj_gtin['Gtin'] = str(obj_code.id).zfill(14)
+            obj_gtin['BrandName'] = list(obj_brand)
+            obj_gtin['GpcCode'] = obj_code.gpc_category_id
+            obj_gtin['NetContent'] = list(obj_net_content)
+            obj_gtin['Status'] = "ACTIVE"
+            obj_gtin['TargetMarketCountryCode'] = list(targetMarketCountryCode)
+            obj_gtin['TradeItemDescription'] = list(obj_trade_item)
 
-            if (obj_trade_image.Value != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
-                obj_gtin.tradeItemImageUrl = list(obj_trade_image)
+            if (obj_trade_image['Value'] != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
+                obj_gtin['TradeItemImageUrl'] = list(obj_trade_image)
             
             listGtins.append(obj_gtin)
             obj_gtin = None

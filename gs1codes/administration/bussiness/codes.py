@@ -100,21 +100,28 @@ def mark_codes(marcation: MarkData):
         "MensajeUI": 'Codigos Marcados Correctamente : ' + str(CodOk) + ' Con Errores: ' + str(CodError)
     }
 
-@transaction.atomic
 def UpdateCodes(df):
     try:
-        cur = connection.cursor()
-        q1 = Queries.createCodeTemp()
-        cur.execute(q1)
-        tmpCode.objects.bulk_create(Code(**vals) for vals in df.to_dict('records'))
-        q2 = Queries.upsertCode()
-        cur.execute(q2)
-        update_code_quantity_consumed(df)
-        # llamar metodo verified con el df
-        VerifiedGs1(df)
+        with transaction.atomic():
+            cur = connection.cursor()
+            q1 = Queries.createCodeTemp()
+            cur.execute(q1)
+            tmpCode.objects.bulk_create(Code(**vals) for vals in df.to_dict('records'))
+            q2 = Queries.upsertCode()
+            cur.execute(q2)
+            update_code_quantity_consumed(df)
+        with transaction.atomic():
+            # llamar metodo verified con el df
+            listCod =[]
+            for index, row  in df.iterrows():                
+                codeV = CodesVerified()
+                codeV['Codes'] = str(row['id'])
+                listCod.append(codeV)
+            VerifiedGs1(listCod)
         return 'InsertOK'
     except Exception as ex:
         return ex
+    
 def update_code_quantity_consumed(df):
     print (df)
     prefix_list =[]
