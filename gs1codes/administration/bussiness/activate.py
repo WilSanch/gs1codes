@@ -1,4 +1,4 @@
-from administration.bussiness.models import PrefixRegistry, ResponseGetRegistry, GtinVerified, BrandName, NetContent, TradeItemDescription, TradeItemImageUrl, TransferProcess, CodesVerified
+from administration.bussiness.models import PrefixRegistry, ResponseGetRegistry, GtinVerified, BrandName, NetContent, TradeItemDescription, TradeItemImageUrl, TransferProcess, CodesVerified, ListGtins
 import requests, simplejson, json
 from administration.models import Code, Prefix, Enterprise
 from administration.common.constants import ProductTypeCodes, ProducState
@@ -18,7 +18,7 @@ language = "es-CO"
 def AddLicenseBatch(lpref: List[PrefixRegistry]):
     urlPost = urlApi + "/Registry/BatchMethods/AddLicenses"
     headers = {'Content-type': 'application/json'}
-    #json_obj = simplejson.dumps(lpref)
+    json_obj = simplejson.dumps(lpref)
 
     rest_response = requests.post(urlPost, headers = headers, json = lpref)
     
@@ -66,13 +66,13 @@ def GetLicense(pref: str):
     return rta
 
 # Métodos Verified
-def AddGtinsBatch(lcode: List[GtinVerified]):
+def AddGtinsBatch(listGtins: List[GtinVerified]):
     url = urlApi + "/Verified/BatchMethods/CreateGtins"
-    json_obj = simplejson.dumps(lcode)
+    json_obj = simplejson.dumps(listGtins)
 
-    rest_response = requests.post(url, json=json_obj)
+    rest_response = requests.post(url, json=listGtins)
    
-    if (rest_response.status_code == "202" or rest_response.status_code == "200"):
+    if (rest_response.status_code == 202 or rest_response.status_code == 200):
         resp = rest_response.content
     else:
         resp = str(None)
@@ -105,39 +105,53 @@ def VerifiedGs1(okCodes: List[CodesVerified]):
                 AddPrefRegistry = AddLicense(obj_registry)
 
             obj_brand = BrandName()
-            obj_brand['Lang'] = language
-            obj_brand['Value'] = obj_code.brand_id
+            obj_brand['lang'] = language
+            obj_brand['value'] = str(obj_code.brand_id)
 
             obj_net_content = NetContent()
-            obj_net_content['Quantity'] = obj_code.quantity_code
-            obj_net_content['MeasurementUnitCode'] = obj_code.measure_unit
+            obj_net_content['quantity'] = int(obj_code.quantity_code)
+            obj_net_content['measurementUnitCode'] = str(obj_code.measure_unit_id)
 
-            targetMarketCountryCode = obj_code.target_market_id
+            targetMarketCountryCode = []
+            targetMarketCountryCode.append(str(obj_code.target_market_id))
 
             obj_trade_item = TradeItemDescription()
-            obj_trade_item['Lang'] = language
-            obj_trade_item['Value'] = obj_code.description
+            obj_trade_item['lang'] = language
+            obj_trade_item['value'] = obj_code.description
 
             obj_trade_image = TradeItemImageUrl()
-            obj_trade_image['Lang'] = language
-            obj_trade_image['Value'] = obj_code.url
+            obj_trade_image['lang'] = language
+            obj_trade_image['value'] = obj_code.url
 
             obj_gtin = GtinVerified()
 
-            obj_gtin['Gtin'] = str(obj_code.id).zfill(14)
-            obj_gtin['BrandName'] = list(obj_brand)
-            obj_gtin['GpcCode'] = obj_code.gpc_category_id
-            obj_gtin['NetContent'] = list(obj_net_content)
-            obj_gtin['Status'] = "ACTIVE"
-            obj_gtin['TargetMarketCountryCode'] = list(targetMarketCountryCode)
-            obj_gtin['TradeItemDescription'] = list(obj_trade_item)
+            obj_gtin['gtin'] = str(obj_code.id).zfill(14)
 
-            if (obj_trade_image['Value'] != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
-                obj_gtin['TradeItemImageUrl'] = list(obj_trade_image)
+            lista = []
+            lista.append(obj_brand)
+            obj_gtin['brandname'] =  lista
+            obj_gtin['gpcCode'] = str(obj_code.gpc_category_id)
+            
+            lista = []
+            lista.append(obj_net_content)
+            obj_gtin['netContent'] = lista
+            obj_gtin['status'] = "ACTIVE"
+            obj_gtin['targetMarketCountryCode'] = targetMarketCountryCode
+
+            lista = []
+            lista.append(obj_trade_item)
+            obj_gtin['tradeItemDescription'] = lista
+
+            if (obj_trade_image['value'] != "https://bloblogycacolabora.blob.core.windows.net/imagecontainer/ImagenNoDisponible.jpg"):
+                lista = []
+                lista.append(obj_trade_item)
+                obj_gtin['tradeItemImageUrl'] = lista
             
             listGtins.append(obj_gtin)
             obj_gtin = None
     
-    rta = AddGtinsBatch(listGtins)
+    lista_gtins = ListGtins()
+    lista_gtins['listGtins'] = listGtins
+    rta = AddGtinsBatch(lista_gtins)
 
     return rta

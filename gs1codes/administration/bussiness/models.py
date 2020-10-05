@@ -159,35 +159,43 @@ class ResponseGetRegistry(TypedDict):
     LicenseeGLN: str
     DataSourceGLN: str
 
+class ListPref(TypedDict):
+    listpref: List[PrefixRegistry]
+
 # Verified models ---------------------------------------------------------
 class BrandName(TypedDict):
-    Lang: str
-    Value: str
+    lang: str
+    value: str
 
 class NetContent(TypedDict):
-    Quantity: float
-    MeasurementUnitCode: str
+    quantity: float
+    measurementUnitCode: str
 
 class TradeItemDescription(TypedDict):
-    Lang: str
-    Value: str
+    lang: str
+    value: str
 
 class TradeItemImageUrl(TypedDict):
-    Lang: str
-    Value: str
+    lang: str
+    value: str
 
 class CodesVerified(TypedDict):
     Codes: str
 
 class GtinVerified(TypedDict):
-    Gtin: str
-    BrandName: List[BrandName]
-    GpcCode: str
-    NetContent: List[NetContent]
-    Status: str
-    TargetMarketCountryCode: List[str]
-    TradeItemDescription: List[TradeItemDescription]
-    TradeItemImageUrl: List[TradeItemImageUrl]
+    gtin: str
+    brandName: List[BrandName]
+    gpcCode: str
+    netContent: List[NetContent]
+    status: str
+    targetMarketCountryCode: List[str]
+    tradeItemDescription: List[TradeItemDescription]
+    tradeItemImageUrl: List[TradeItemImageUrl]
+
+class ListGtins(TypedDict):
+    listGtins: List[GtinVerified]
+
+
 
 class CodeASCext(TypedDict):
     Brand: str
