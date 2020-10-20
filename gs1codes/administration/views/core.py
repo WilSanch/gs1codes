@@ -1,10 +1,12 @@
 import json
 from django.http import HttpResponse, JsonResponse
 from administration.bussiness.prefix_api import activation,inactivation,assignate_prefix,prefix_regroup,prefix_transfer,prefix_refund,masive_update_validity_date
+from administration.bussiness.colabora import validate_gtin_by_nit, buscar_gln, get_gln_on_enterprise, get_gtin_by_nit_and_type_code, get_codigos_by_esquema, get_codigos_by_nit, saldos_by_nit, get_codigos_by_tipo_producto
 from rest_framework import generics
 from administration.bussiness.codes import *
 from administration.models.core import ProductType, GpcCategory, MeasureUnit
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
 
 class ptlist(generics.ListCreateAPIView):
       queryset = ProductType.objects.all() 
@@ -101,3 +103,79 @@ def ListRegistrarGTIN14(request):
   if request.method == 'POST':
     json_data = json.loads(request.body)
     return JsonResponse(ListRegistryGTIN14(json_data))
+
+# Colabora -------------------------------------------------------
+
+def ValidateGtinByNit(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body)
+    return JsonResponse(validate_gtin_by_nit(json_data))
+
+def BuscaGlnNit(request):
+  if request.method == 'GET':
+    if('Gln' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+
+    if('Nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    
+    gln = request.GET['Gln']
+    nit = request.GET['Nit']
+    return JsonResponse(buscar_gln(gln,nit))
+
+def GetGlnOnEnterprise(request):
+  if request.method == 'GET':
+    if('Gtin' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    
+    gtin = request.GET['Gtin']
+    return JsonResponse(get_gln_on_enterprise(gtin))
+
+def GetGtinByNitAndTypeCode(request):
+  if request.method == 'GET':
+    if('Nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    
+    nit = request.GET['Nit']
+    return JsonResponse(get_gtin_by_nit_and_type_code(nit),safe=False)
+
+def GetCodigosByEsquema(request):
+  if request.method == 'GET':
+    if('nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+
+    if('prefix' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    
+    nit = request.GET['nit']
+    prefix =  request.GET['prefix']
+    return JsonResponse(get_codigos_by_esquema(nit,prefix),safe=False)
+
+def GetCodigosByNit(request):
+  if request.method == 'GET':
+    if('nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+
+    if('pageIndex' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+
+    if('countRegister' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+    
+    nit = request.GET['nit']
+    pageIndex = request.GET['pageIndex']
+    countRegister = request.GET['countRegister']
+    return JsonResponse(get_codigos_by_nit(nit,pageIndex,countRegister),safe=False)
+
+def SaldosByNit(request):
+  if request.method == 'GET':
+    if('nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})
+
+    nit = request.GET['nit']
+    return JsonResponse(saldos_by_nit(nit),safe=False)
+
+def GetCodigosByTipoProducto(request):
+  if request.method == 'POST':
+    json_data = json.loads(request.body)
+    return JsonResponse(get_codigos_by_tipo_producto(json_data))
