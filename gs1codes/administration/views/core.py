@@ -3,8 +3,12 @@ from django.http import HttpResponse, JsonResponse
 from administration.bussiness.prefix_api import activation,inactivation,assignate_prefix,prefix_regroup,prefix_transfer,prefix_refund,masive_update_validity_date
 from rest_framework import generics
 from administration.bussiness.codes import *
-from administration.models.core import ProductType, GpcCategory, MeasureUnit
+from administration.models.core import ProductType, GpcCategory, MeasureUnit,Code
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
 
 class ptlist(generics.ListCreateAPIView):
       queryset = ProductType.objects.all() 
@@ -17,14 +21,31 @@ class ptdetail(generics.RetrieveDestroyAPIView):
 class ptcreate(generics.CreateAPIView):
       serializer_class = ProductTypeSerializer
       
-class GetCategoriesGPC(generics.ListCreateAPIView):
-      queryset = GpcCategory.objects.all() 
-      serializer_class = GpcCategorySerializer
+#class GetCategoriesGPC(generics.ListCreateAPIView):
+#      queryset = GpcCategory.objects.all() 
+#      serializer_class = GpcCategorySerializer
 
 class GetMeasureUnits(generics.ListCreateAPIView):
       queryset = MeasureUnit.objects.all() 
       serializer_class = MeasureUnitsSerializer
+      
+@api_view(['POST'])
+def UpdateCodigo(request):
+  if request.method == 'POST':
+    nit = request.data['Nit']
+    id = request.data['Gtin']
+    Gtin= int(str(id)[:-2])
+    enterprise_obj = Enterprise.objects.get(identification=nit)
+    prefix_objects = Prefix.objects.get(id_prefix=Gtin)
+    if prefix_objects.enterprise_id == enterprise_obj.id :
+      c = Code()
+      c.id = id
+      c.description = data=request.data['description']
+      c.save(update_fields=['description'])
+      return Response(data, status=status.HTTP_201_CREATED)
 
+
+  
 def mark(request):
   if request.method == 'POST':
     json_data = json.loads(request.body)

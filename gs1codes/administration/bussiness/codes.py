@@ -24,11 +24,11 @@ class ProductTypeSerializer(serializers.ModelSerializer):
         model = ProductType
         fields = '__all__'
 
-class GpcCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GpcCategory
+#class GpcCategorySerializer(serializers.ModelSerializer):
+#    class Meta:
+#        model = GpcCategory
         # fields = ['brick_code','spanish_name_brick']
-        fields = '__all__'
+#        fields = '__all__'
 
 class MeasureUnitsSerializer(serializers.ModelSerializer):
     class Meta:

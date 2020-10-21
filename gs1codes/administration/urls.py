@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from administration.views.core import ptlist,GetCategoriesGPC,ptdetail,GetMeasureUnits
+from administration.views.core import ptlist,ptdetail,UpdateCodigo
 from administration.views.prefix import (load_enterprise,updateAdList,updateAd)
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
@@ -8,11 +8,13 @@ from django.conf.urls import url
 from administration.views.CarguePortafolio import (loadResultList)
 from django.conf import settings
 from django.conf.urls.static import static
+from administration.bussiness.colabora import (EnterpriseView,CountryView,GpcCategoryView,MeasureUnitsView,CodepriseView,GetGlnVerify)
 schema_view = get_swagger_view(title='API Codes GS1')
 
 urlpatterns = [
     # ex: /polls/
     path('mark/', views.mark, name='mark_codes'),
+
     path('activate/', views.activate, name='prefix_activation'),
     path('inactivate/', views.activate, name='prefix_inactivation'),
     path('inactivate/', views.inactivate, name='prefix_inactivation'),
@@ -40,8 +42,8 @@ urlpatterns = [
     path('ListRegistrarGTIN14/', views.ListRegistrarGTIN14, name='ListRegistrarGTIN14'),
     path("pt/", ptlist.as_view(), name="pt_list"),
     path("pt/<int:pk>/", ptdetail.as_view(), name="pt_detail"),
-    path("GetCategoriesGPC/", GetCategoriesGPC.as_view(), name="GetCategoriesGPC"),
-    path("GetMeasureUnits/", GetMeasureUnits.as_view(), name="GetMeasureUnits"),
+    #path("GetCategoriesGPC/", GetCategoriesGPC.as_view(), name="GetCategoriesGPC"),
+    #path("GetMeasureUnits/", GetMeasureUnits.as_view(), name="GetMeasureUnits"),
     path('ejemplo/', views.ejemplo, name='ejemplo'),
     path('nit1/', views.nit1, name='nit1'),
     path('report/', views.report, name='report'),
@@ -53,4 +55,12 @@ urlpatterns = [
     path('update_ad/', updateAd, name='update_ad'),
     path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
+    #colabora
+    path('Empresa/GetAll/', EnterpriseView.as_view(), name='Empresa_GetAll'),
+    path('GetTargetMarket/', CountryView.as_view(), name='GetTargetMarket'),
+    path('UpdateCodigo/', UpdateCodigo, name='UpdateCodigo'),
+    path('GetGlnVerify2/', GetGlnVerify, name='GetGlnVerify2'),
+    path('GetCategoriesGPC/', GpcCategoryView.as_view(), name='GetCategoriesGPC'),
+    path("GetMeasureUnits/", MeasureUnitsView.as_view(), name="GetMeasureUnits"),
+    path("GetGlnVerify/", CodepriseView.as_view(), name="GetGlnVerify"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
