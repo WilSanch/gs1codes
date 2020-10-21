@@ -142,6 +142,74 @@ class Prefix_Validate(TypedDict):
     code_quantity_reserved : int
     code_residue : int
 
+# Colabora models ---------------------------------------------------------
+
+class IsValidGtinByNit(TypedDict):
+    Gtin: int
+    IsValid: bool
+    Status: str
+    TypeProduct: int
+
+class ObjectIsValidGtin(TypedDict):
+    Gtins: List[IsValidGtinByNit]
+    Nit: str
+
+class BuscarGln(TypedDict):
+    Gln: int
+    ProducType: int
+
+class glnEnterprise(TypedDict):
+    Nit: str
+    Name: str
+    Gtin: int
+    StateGtin: str
+
+class ListGtinByNitTypeCode(TypedDict):
+    CompanyName: str
+    Gtin: int
+    Nit: str
+    Prefix: str
+    ProductName: str
+    IsMember: bool
+    TypeDescription: str
+    IsGtin13: bool
+    AssigmentDate: datetime
+    ValidityDate: datetime
+
+class CodigosByEsquema(TypedDict):
+    IdEsquema: int
+    Esquema: str
+    CodigosComprados: int
+    CodigosAsignados: int
+    CodigosDisponibles: int
+
+class Gtin13DescriptionColabora(TypedDict):
+    Codigo: int
+    Descripcion: str
+    TipoProducto: int
+    FechaAsignacion: datetime
+    EstadoProducto: int
+
+class CodigosColabora(TypedDict):
+    TotalRegistros: int
+    gtin13Descriptions: List[Gtin13DescriptionColabora]
+
+class SaldosPrefijo(TypedDict):
+    Estado: int 
+    Cantidad: int
+
+class ListaPrefMarcacionSaldos(TypedDict):
+    Prefix: str
+    TotalPrefijo: int
+    CantidadPorEstado: List[SaldosPrefijo]
+
+class QueryPagination(TypedDict):
+    Nit: str
+    PageIndex: int
+    CountRegister: int
+    ProductTypes: List[int]
+    State: int
+
 # Registry models ---------------------------------------------------------
 
 class PrefixRegistry(TypedDict):
@@ -195,8 +263,6 @@ class GtinVerified(TypedDict):
 class ListGtins(TypedDict):
     listGtins: List[GtinVerified]
 
-
-
 class CodeASCext(TypedDict):
     Brand: str
     GpcCode: str
@@ -208,29 +274,3 @@ class CodeASCext(TypedDict):
 class ErrorList(TypedDict):
     IdRegistro: int
     MsgError: str
-# Update Url Gtin models ---------------------------------------------------------
-#class GtinExt(TypedDict):
-#    Gtin: float
-#    TipoProducto: ProductType
-#    Brand: str
-#    TargetMarket: str
-#    Gpc: str
-#    Url: str
-#    MeasureUnit: int
-#    Quantity: int
-
-#class UpdateUrlGtin(TypedDict):
-#    Nit: str
-#    Gtins: List[GtinExt]
-
-#class CodigoRespuestaUpdateUrl(Enum):
-#    Existoso = "Exitoso"
-#    ProblemaDesconocido = "ProblemaDesconocido"
-
-#class UpdateUrlGtinResult(TypedDict):
-#    GtinCreados: List[float]
-#    GtinActualizados: List[float]
-#    Mesagge: str
-#    Respuesta: CodigoRespuestaUpdateUrl
-
-# ----------------------------------------------------------------------
