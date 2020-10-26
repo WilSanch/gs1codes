@@ -2,6 +2,7 @@ import json
 from django.http import HttpResponse, JsonResponse
 from administration.bussiness.prefix_api import activation,inactivation,assignate_prefix,prefix_regroup,prefix_transfer,prefix_refund,masive_update_validity_date
 from administration.bussiness.colabora import validate_gtin_by_nit, buscar_gln, get_gln_on_enterprise, get_gtin_by_nit_and_type_code, get_codigos_by_esquema, get_codigos_by_nit, saldos_by_nit, get_codigos_by_tipo_producto
+from administration.bussiness.colabora import get_gln_verify,get_pref_list
 from rest_framework import generics
 from administration.bussiness.codes import *
 from administration.models.core import ProductType, GpcCategory, MeasureUnit,Code
@@ -23,10 +24,6 @@ class ptdetail(generics.RetrieveDestroyAPIView):
 class ptcreate(generics.CreateAPIView):
       serializer_class = ProductTypeSerializer
       
-#class GetCategoriesGPC(generics.ListCreateAPIView):
-#      queryset = GpcCategory.objects.all() 
-#      serializer_class = GpcCategorySerializer
-
 class GetMeasureUnits(generics.ListCreateAPIView):
       queryset = MeasureUnit.objects.all() 
       serializer_class = MeasureUnitsSerializer
@@ -46,7 +43,17 @@ def UpdateCodigo(request):
       c.save(update_fields=['description'])
       return Response(data, status=status.HTTP_201_CREATED)
 
-
+@api_view(['POST'])
+def InactivaProductos(request):
+    if "POST" == request.method:
+      codigo = []
+      codigo = request.data
+      for ob_co in codigo:
+        c = Code()
+        c.id = ob_co['Codigos']
+        c.product_state_id = 2
+        c.save(update_fields=['product_state_id'])
+      return Response("Gtin Inactivado correctamente.",status=status.HTTP_201_CREATED)
   
 def mark(request):
   if request.method == 'POST':
@@ -143,6 +150,22 @@ def BuscaGlnNit(request):
     gln = request.GET['Gln']
     nit = request.GET['Nit']
     return JsonResponse(buscar_gln(gln,nit))
+
+def GetGlnVerify(request):
+  if request.method == 'GET':
+    if('Gtin' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})    
+    Gtin = request.GET['Gtin']
+    
+    return JsonResponse(get_gln_verify(Gtin))
+
+def GetPrefList(request):
+  if request.method == 'GET':
+    if('nit' not in request.GET):
+      return JsonResponse({"Error": "El parametro recibido no es el correcto."})    
+    nit = request.GET['nit']
+    
+    return JsonResponse(get_pref_list(nit),safe=False)
 
 def GetGlnOnEnterprise(request):
   if request.method == 'GET':

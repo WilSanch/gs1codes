@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 from datetime import datetime
 from django.db import transaction
 from administration.bussiness.models import ObjectIsValidGtin, IsValidGtinByNit, BuscarGln, glnEnterprise, ListGtinByNitTypeCode, CodigosByEsquema, Gtin13DescriptionColabora, CodigosColabora, ListaPrefMarcacionSaldos, SaldosPrefijo, QueryPagination
+from administration.bussiness.models import GlnVerify,ListPrefixCantidad
 from django.shortcuts import get_object_or_404
 from administration.common.constants import StCodes, SchemaCodes, ProductType
 from django.db.models import F,Q,Sum,Count
@@ -16,15 +17,11 @@ from django.http import Http404
 class EnterpriseView(generics.ListCreateAPIView):
     serializer_class = EnterpriseSerializer  
     queryset = Enterprise.objects.filter(enterprise_state=True) 
-    #filter_backends = [filters.SearchFilter] 
-    #search_fields = ['=nit'] 
     http_method_names = ['get']
 
 class CountryView(generics.ListCreateAPIView):
     serializer_class = CountrySerializer 
     queryset = Country.objects.all() 
-    #filter_backends = [filters.SearchFilter] 
-    #search_fields = ['=nit'] 
     http_method_names = ['get']
 
 class GpcCategoryView(generics.ListCreateAPIView):
@@ -44,14 +41,44 @@ class CodepriseView(generics.ListCreateAPIView):
     search_fields = ['=id'] 
     http_method_names = ['get']
 
-@api_view(['GET'])
-def GetGlnVerify(request):
-    if request.method == 'GET':
-        Gtin = request.data['Gtin']
-        print(Gtin)
-        code_obj = Code.objects.get(id=Gtin)
-        return code_obj
+def get_pref_list(nit:str) -> List[ListPrefixCantidad]:
+    obj_prefix = Prefix.objects.filter(enterprise__identification = nit)
+    Lista = []
+    for pr in obj_prefix:
+        obj_list_prefix = ListPrefixCantidad()
+        obj_list_prefix['Prefix'] = pr.id_prefix
+        obj_list_prefix['IdSchema'] = pr.schema_id
+        obj_list_prefix['Cantidad'] = pr.code_quantity_reserved
+        Lista.append(obj_list_prefix) 
+    return Lista
 
+def get_gln_verify(Gtin:int) -> GlnVerify:
+    obj_code = Code.objects.filter(id=Gtin).first()
+    obj_verify = GlnVerify()
+    if not obj_code:
+        obj_verify['ID']= None
+        obj_verify['DESCRIPTION'] = None
+        obj_verify['TargetMarket'] = None
+        obj_verify['Brand'] = None
+        obj_verify['Url'] = None
+        obj_verify['QUANTITY_CODE'] = None
+        obj_verify['GPCCategory'] = None
+        obj_verify['TEXTILCategory'] = None
+        obj_verify['ProductState'] = None
+        obj_verify['ID_PRODUCT_TYPE'] = None
+    else:
+        obj_verify['ID']= Gtin
+        obj_verify['DESCRIPTION'] = obj_code.description
+        obj_verify['TargetMarket'] = obj_code.target_market_id
+        obj_verify['Brand'] = obj_code.brand_id
+        obj_verify['Url'] = obj_code.url
+        obj_verify['QUANTITY_CODE'] = obj_code.quantity_code
+        obj_verify['GPCCategory'] = obj_code.gpc_category_id
+        obj_verify['TEXTILCategory'] = obj_code.textil_category_id
+        obj_verify['ProductState'] = obj_code.product_state_id
+        obj_verify['ID_PRODUCT_TYPE'] = obj_code.product_type_id
+
+    return obj_verify
 
 def validate_gtin_by_nit(gtins: ObjectIsValidGtin) -> ObjectIsValidGtin:
     obj_enterprise = get_object_or_404(Enterprise,identification=gtins['Nit'] )

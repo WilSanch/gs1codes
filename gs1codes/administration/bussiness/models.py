@@ -154,6 +154,25 @@ class ObjectIsValidGtin(TypedDict):
     Gtins: List[IsValidGtinByNit]
     Nit: str
 
+class GlnVerify(TypedDict):
+    ID: int
+    DESCRIPTION: str
+    MEASURE_UNIT_ID: int
+    TargetMarket: str
+    Brand: str
+    Url: str
+    QUANTITY_CODE: int
+    GPCCategory: str
+    ATCCategory: int
+    TEXTILCategory: int
+    ProductState: int
+    ID_PRODUCT_TYPE: int
+
+class ListPrefixCantidad(TypedDict):
+    Prefix: str
+    IdSchema: int
+    Cantidad: int
+
 class BuscarGln(TypedDict):
     Gln: int
     ProducType: int
@@ -209,7 +228,7 @@ class QueryPagination(TypedDict):
     CountRegister: int
     ProductTypes: List[int]
     State: int
-
+    
 # Registry models ---------------------------------------------------------
 
 class PrefixRegistry(TypedDict):

@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from administration.views.core import ptlist,ptdetail,UpdateCodigo
+from administration.views.core import ptlist,ptdetail,UpdateCodigo,InactivaProductos
 from administration.views.prefix import (load_enterprise,updateAdList,updateAd)
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
@@ -8,7 +8,7 @@ from django.conf.urls import url
 from administration.views.CarguePortafolio import (loadResultList)
 from django.conf import settings
 from django.conf.urls.static import static
-from administration.bussiness.colabora import (EnterpriseView,CountryView,GpcCategoryView,MeasureUnitsView,CodepriseView,GetGlnVerify)
+from administration.bussiness.colabora import (EnterpriseView,CountryView,GpcCategoryView,MeasureUnitsView,CodepriseView)
 schema_view = get_swagger_view(title='API Codes GS1')
 
 urlpatterns = [
@@ -64,11 +64,12 @@ urlpatterns = [
     path('ProcesaBlobs/', views.procesaBlobs, name='ProcesaBlobs'),
     path('swagger-docs/', schema_view),
     #colabora
+    path('GetGlnVerify/', views.GetGlnVerify, name='GetGlnVerify'),
+    path('GetPrefList/', views.GetPrefList, name='GetPrefList'),
     path('Empresa/GetAll/', EnterpriseView.as_view(), name='Empresa_GetAll'),
     path('GetTargetMarket/', CountryView.as_view(), name='GetTargetMarket'),
     path('UpdateCodigo/', UpdateCodigo, name='UpdateCodigo'),
-    path('GetGlnVerify2/', GetGlnVerify, name='GetGlnVerify2'),
+    path('InactivaProductos/', InactivaProductos, name='InactivaProductos'),
     path('GetCategoriesGPC/', GpcCategoryView.as_view(), name='GetCategoriesGPC'),
     path("GetMeasureUnits/", MeasureUnitsView.as_view(), name="GetMeasureUnits"),
-    path("GetGlnVerify/", CodepriseView.as_view(), name="GetGlnVerify"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
