@@ -122,8 +122,6 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             quantity = int(ac.Quantity / selected_range.quantity_code)
             create_new_prefix = True
         
-        new_prefix = Prefix()
-
         if (combination.give_prefix == 1):
             ac.Quantity = selected_range.quantity_code
 
@@ -133,6 +131,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             for x in range(1, quantity+1):
                 with transaction.atomic():
                     assigned_prefix = Common.PrefixGenerator(selected_range.id)
+                    new_prefix = Prefix() 
 
                     new_prefix.id_prefix = assigned_prefix
                     new_prefix.enterprise_id = enterprise.id
@@ -162,7 +161,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                     with transaction.atomic():
                         result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
 
-                    new_prefix = Prefix() 
+                    
             
             lista_prefix = ListPref()
             lista_prefix['listpref'] = list_registry
@@ -170,6 +169,7 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
             # Add license batch
             rta = AddLicenseBatch(lista_prefix)
         else:
+            new_prefix = Prefix()
             if (create_new_prefix == True):
                 assigned_prefix = Common.PrefixGenerator(selected_range.id)
 
@@ -201,6 +201,10 @@ def prefix_assignment(ac: CodeAssignmentRequest, enterprise, schema, persist_par
                 # Add license 
                 rta = AddLicense(pref_registry)
                 result = rta
+            else:
+                with transaction.atomic():
+                    result = code_assignment(new_prefix, ac, username, selected_range, enterprise, existing_prefix)
+
 
             if (existing_prefix is not None):
                 if (create_new_prefix == True):
@@ -276,7 +280,12 @@ def prefix_assignation(ac: CodeAssignmentRequest, id_agreement: int= None, agree
         if not(ac.PrefixType):
             code_type_by_range = CodeTypeByRanges.objects.filter(code_type_id=code_type_obj.id)
 
-            if (ac.Quantity%10==0 or ac.Quantity==1) and (str(ac.Quantity)[1:1] == '1' ):
+            quantity_str = str(ac.Quantity)
+            a = quantity_str[1:len(quantity_str)]
+            b = ""
+            c = b.zfill(len(quantity_str)-1)
+
+            if (ac.Quantity%10==0 or ac.Quantity==1) and (quantity_str[0:1] == '1' and a == c):
                 tmp_quantity = ac.Quantity
             else:
                 tmp_quantity = int( "1".ljust(len(str(ac.Quantity))+1, '0') )

@@ -48,7 +48,7 @@
             </td>
         {% endif %} 
         {% if contexto.opc == 3 %}
-            {% if row.regrouping == 1 %}
+            {% if row.regrouping == 1 and row.state_id != 4 %}
                 <td id="cntActionpr">
                     <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
                         <i class="material-icons prefix">group_work</i>
