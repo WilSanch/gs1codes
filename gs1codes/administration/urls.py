@@ -6,6 +6,7 @@ from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 from django.conf.urls import url
 from administration.views.CarguePortafolio import (loadResultList)
+from reports.views import (status_pre_cod)
 from django.conf import settings
 from django.conf.urls.static import static
 from administration.bussiness.colabora import (EnterpriseView,CountryView,GpcCategoryView,MeasureUnitsView,CodepriseView)
@@ -72,4 +73,6 @@ urlpatterns = [
     path('InactivaProductos/', InactivaProductos, name='InactivaProductos'),
     path('GetCategoriesGPC/', GpcCategoryView.as_view(), name='GetCategoriesGPC'),
     path("GetMeasureUnits/", MeasureUnitsView.as_view(), name="GetMeasureUnits"),
+    #report
+    path('status_pre_cod/', status_pre_cod, name='status_pre_cod'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

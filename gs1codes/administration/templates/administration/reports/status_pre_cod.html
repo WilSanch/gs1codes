@@ -1,0 +1,230 @@
+{% extends 'administration/base.html' %}
+{% block title%}Estado{% endblock %}
+{% block content %}
+
+<h5 class="center">Este reporte le permite ver el estado actual de un prefijo o un código</h5>
+<form id="cod_prefixSearch" action="../status_pre_cod/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+   
+        <div class="col s3">
+            <label for="id">Prefijo/Código</label>
+            <input type="text" id="id" name="id" value="" required autocomplete="off"><br><br>
+        </div>
+        <div class="col s3">
+            <label for="option">Tipo Reporte:</label>
+            <select name="option" id="option">
+                <option value="Codigo">Codigo</option>
+                <option value="Prefijo">Prefijo</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row">
+        <button class="btn waves-effect waves-light Orangelogyca" type="submit" id="btnBucar" name="action"  >Buscar
+            <i class="material-icons right">send</i>
+        </button>
+    </div>
+
+    <input id="error" type="hidden" value="">
+</form>
+
+
+<form id="" action="/codes/status_pre_cod/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+
+</form>
+<p></p>
+<hr>
+<input id="error" type="hidden" value="{{ Error }}">
+<h6 class="center">Resultados busqueda</h6>
+
+<div class="row">  
+     
+    
+    <table id="data-table_code" class="table table-bordered" style="display: none; width:100%" >  
+         <thead>  
+              <tr>  
+                   <th>Prefijo</th>  
+                   <th>Código</th>  
+                   <th>Esquema</th> 
+                   <th>Descripción</th> 
+                   <th>Estado</th>
+                   <th>Nit</th>
+                   <th>Razón Social</th>
+                   <th>Fecha de  Asignación</th>
+                   <th>Fecha de Vigencia</th>
+                   <th>Tipo de  Producto</th>
+
+              </tr>  
+         </thead>  
+    </table>  
+</div> 
+
+
+<div class="row">  
+     
+    
+    <table id="data-table_prefix" class="table table-bordered" style="display: none; width:100%" >  
+         <thead>  
+              <tr>  
+                   <th>Prefijo</th>  
+                   <th>Estado</th>  
+                   <th>Esquema</th> 
+                   <th>NIT</th> 
+                   <th>Razón social</th>
+                   <th>F. Asignación</th>
+                   <th>F. Vigencia</th>
+                   <th>Tipo Prefijo</th>
+
+
+              </tr>  
+         </thead>  
+    </table>  
+</div> 
+
+
+
+
+{% endblock %}
+
+{% block JsPage%}
+<script>
+
+   $("#id").change(function (e) {
+        e.preventDefault();
+        // get the nickname
+        var id = $(this).val();
+        var process = $("#process").val();
+        
+    })
+    
+    
+    $('#cod_prefixSearch').submit((event) => {
+        event.preventDefault();
+        let id = $('#id').val();
+        let option = $('#option').val();
+        
+        if(id !== null && id !== ""){
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'status_pre_cod' %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "id": id,
+                    "option":option
+                },
+                beforeSend: function(){
+                    console.log("Enviando request...");
+                },
+                success: function (response) {
+
+                    
+                    if (option == "Codigo")
+                    
+                    {
+                        pintarTablaCode(response.data);
+                        console.log(response.data);
+                    }
+                    if (option == "Prefijo"){
+                       pintarTablaPrefix(response.data)
+                        console.log(response.data);
+                    }
+                },
+                
+                error: function (response) {
+                    data = JSON.parse(response["data"]);
+
+                    {
+                        $('#id').val("")
+                        alert('No se encontró ' + id + '. Por favor verifique!')
+                    }
+
+                }
+            });
+        } else {
+            M.toast({ html: 'El campo nit no puede estar vacío.', classes: 'rounded Orangelogyca' });
+        }
+    });
+
+    function pintarTablaPrefix(data){
+        $('#data-table_prefix').DataTable().destroy();
+        $('#data-table_prefix').show();
+        $('#data-table_prefix').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 6,
+            buttons: {
+                name: 'primary',
+                buttons: [
+                'copy', 'csv', 'excel','pdf'
+                ]
+            },
+            "data": data,
+            "columns": [
+                { "data": "id_prefix" },
+                { "data": "state_id__description" },
+                { "data": "schema_id__description" },
+                { "data": "enterprise_id__identification" },
+                { "data": "enterprise_id__enterprise_name" },
+                { "data": "assignment_date" },
+                { "data": "validity_date"},  
+                { "data": "range_id__name" },
+
+
+            ], select: true,
+            lengthMenu: [
+                [15, 30, 45, -1],
+                ["15 Rows", "30 Rows", "45 Rows", "Todo"]
+            ],
+            language: {
+                searchPlaceholder: "Buscar Datos",
+                infoEmpty: "La tabla no tiene registros",
+                zeroRecords: "Uppps, No tenemos resultados para tu busqueda",
+            },
+        });
+
+
+    }
+
+    function pintarTablaCode(data){
+        $('#data-table_code').DataTable().destroy();
+        $('#data-table_code').show();
+        $('#data-table_code').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 6,
+            buttons: {
+                name: 'primary',
+                buttons: [
+                'copy', 'csv', 'excel','pdf'
+                ]
+            },
+            "data": data,
+            "columns": [
+                { "data": "prefix_id__id_prefix" },
+                { "data": "id" },
+                { "data": "prefix_id__schema_id__description" },
+                { "data": "description" },
+                { "data": "state_id__description" },
+                { "data": "prefix_id__enterprise_id__identification" },
+                { "data": "prefix_id__enterprise_id__enterprise_name" },
+                { "data": "assignment_date" , render: function (dataField) { return dataField.split("T")[0] +" "+ dataField.split("T")[1].split(".")[0];} },
+                { "data": "prefix_id__validity_date" , render: function (dataField) { return dataField.split("T")[0] +" "+ dataField.split("T")[1].split(".")[0];} },
+                { "data": "product_type_id__description" }
+
+            ], select: true,
+            lengthMenu: [
+                [15, 30, 45, -1],
+                ["15 Rows", "30 Rows", "45 Rows", "Todo"]
+            ],
+            language: {
+                searchPlaceholder: "Buscar Datos",
+                infoEmpty: "La tabla no tiene registros",
+                zeroRecords: "Uppps, No tenemos resultados para tu busqueda",
+            },
+        });
+
+
+    }
+ 
+</script>
+{% endblock%}
