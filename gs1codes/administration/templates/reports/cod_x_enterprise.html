@@ -1,0 +1,158 @@
+{% extends 'administration/base.html' %}
+{% block title%}códigos por NIT{% endblock %}
+{% block content %}
+
+<h5 class="center">Este reporte le permite ver los códigos que tiene asignados actualmente una empresa</h5>
+<form id="cod_prefixSearch" action="../cod_x_enterprise/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+   
+        <div class="col s3">
+            <label for="nit">NIT</label>
+            <input type="text" id="nit" name="nit" value="" required autocomplete="off"><br><br>
+        </div>
+        
+    </div>
+    
+    <div class="row">
+        <button class="btn waves-effect waves-light Orangelogyca" type="submit" id="btnBucar" name="action"  >Buscar
+            <i class="material-icons right">send</i>
+        </button>
+    </div>
+
+    <input id="error" type="hidden" value="">
+</form>
+
+
+<form id="" action="/codes/cod_x_enterprise/" method="GET" enctype="multipart/form-data">
+    {% csrf_token %}
+
+</form>
+<p></p>
+<hr>
+<input id="error" type="hidden" value="{{ Error }}">
+<h6 class="center">Resultados busqueda</h6>
+
+<div class="row">  
+     
+    
+    <table id="data-table_code" class="table table-bordered" style="display: none; width:100%" >  
+         <thead>  
+              <tr>  
+                   <th>Razón social</th>  
+                   <th>Código</th>  
+                   <th>Prefijo</th> 
+                   <th>Esquema</th> 
+                   <th>Descripción del código</th>
+                   <th>Estado</th>
+                   <th>NIT</th>
+                   <th>Fecha de asignación</th>
+                   <th>Fecha de vigencia</th>
+                   <th>Tipo de producto</th>
+
+              </tr>  
+         </thead>  
+    </table>  
+</div> 
+
+
+
+
+
+
+
+{% endblock %}
+
+{% block JsPage%}
+<script>
+
+   $("#id").change(function (e) {
+        e.preventDefault();
+        // get the nickname
+        var id = $(this).val();
+        var process = $("#process").val();
+        
+    })
+    
+    
+    $('#cod_prefixSearch').submit((event) => {
+        event.preventDefault();
+        let nit = $('#nit').val();
+        
+        
+        if(nit !== null && nit !== ""){
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'cod_x_enterprise' %}",
+                data: {
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                    "nit": nit
+                },
+                beforeSend: function(){
+                    console.log("Enviando request...");
+                },
+                success: function (response) {
+                    
+                    pintarTablaCode(response.data);
+                    console.log(response.data);          
+
+                },
+                
+                error: function (response) {
+                    data = JSON.parse(response["data"]);
+
+                    {
+                        $('#id').val("")
+                        alert('No se encontró ' + id + '. Por favor verifique!')
+                    }
+
+                }
+            });
+        } else {
+            M.toast({ html: 'El campo nit no puede estar vacío.', classes: 'rounded Orangelogyca' });
+        }
+    });
+
+
+    function pintarTablaCode(data){
+        $('#data-table_code').DataTable().destroy();
+        $('#data-table_code').show();
+        $('#data-table_code').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 6,
+            buttons: {
+                name: 'primary',
+                buttons: [
+                'copy', 'csv', 'excel','pdf'
+                ]
+            },
+            "data": data,
+            "columns": [
+                { "data": "prefix_id__enterprise_id__enterprise_name" },
+                { "data": "id" },
+                { "data": "prefix_id__id_prefix" },
+                { "data": "prefix_id__schema_id__description" },
+                { "data": "description" },
+                { "data": "state_id__description" },
+                { "data": "prefix_id__enterprise_id__identification" },
+                { "data": "assignment_date" },
+                { "data": "prefix_id__validity_date" },
+                { "data": "product_type_id__description" }
+
+            ], select: true,
+            lengthMenu: [
+                [15, 30, 45, -1],
+                ["15 Rows", "30 Rows", "45 Rows", "Todo"]
+            ],
+            language: {
+                searchPlaceholder: "Buscar Datos",
+                infoEmpty: "La tabla no tiene registros",
+                zeroRecords: "Uppps, No tenemos resultados para tu busqueda",
+            },
+        });
+
+
+    }
+ 
+</script>
+{% endblock%}
