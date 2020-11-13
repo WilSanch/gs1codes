@@ -57,6 +57,30 @@ def codxEnterprise(request,format=None):
     if "POST" == request.method:
         nit = request.POST['nit']
         ent = codEnterprise(nit)
+        dictionaries = [ obj for obj in ent.values(
+            "id","prefix_id__enterprise_id__enterprise_name","prefix_id__enterprise_id__identification",
+            "prefix_id__id_prefix","prefix_id__schema_id__description",
+            "description","state_id__description","assignment_date",
+            "prefix_id__validity_date","product_type_id__description"
+        ) ]        
+        return JsonResponse({"data": dictionaries}, safe=False)
+
+
+def assignedEnterprise(idpk):
+    try:
+        return Code.objects.filter(prefix_id__enterprise_id__identification=idpk)
+    except IndentationError:
+        return False
+
+
+@login_required 
+@api_view(['GET', 'POST'])
+def repor_assigned(request,format=None):
+    if "GET" == request.method:
+        return render(request, './reports/repor_assigned.html')
+    if "POST" == request.method:
+        nit = request.POST['nit']
+        ent = assignedEnterprise(nit)
         #idempresa = ent.values("id")
         dictionaries = [ obj for obj in ent.values(
             "id","prefix_id__enterprise_id__enterprise_name","prefix_id__enterprise_id__identification",
