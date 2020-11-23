@@ -1,5 +1,5 @@
 {% extends 'administration/base.html' %}
-{% block title%}códigos por NIT{% endblock %}
+{% block title%}Informe de asignados{% endblock %}
 {% block content %}
 
 <h5 class="center">Ingrese el NIT de la empresa para la que desea realizar la consulta de información.</h5>
@@ -34,21 +34,26 @@
 <h6 class="center">Resultados busqueda</h6>
 
 <div class="row">  
-     
-    
-    <table id="data-table_code" class="table table-bordered" style="display: none; width:100%" >  
+    <table id="data-table_esquema_quantity" class="table table-bordered" style="display: none; width:100%" >  
          <thead>  
               <tr>  
-                   <th>Razón social</th>  
-                   <th>Código</th>  
-                   <th>Prefijo</th> 
-                   <th>Esquema</th> 
-                   <th>Descripción del código</th>
+                   <th>Esquema</th>  
+                   <th>Cantidad</th>
+              </tr>  
+         </thead>  
+    </table>  
+</div> 
+
+<div class="row">  
+     
+    
+    <table id="data-table_code_count" class="table table-bordered" style="display: none; width:100%" >  
+         <thead>  
+              <tr>  
+                   <th>Esquema</th>     
                    <th>Estado</th>
-                   <th>NIT</th>
-                   <th>Fecha de asignación</th>
-                   <th>Fecha de vigencia</th>
-                   <th>Tipo de producto</th>
+                   <th>Tipo</th>
+                   <th>Cantidad</th>
 
               </tr>  
          </thead>  
@@ -83,7 +88,7 @@
         if(nit !== null && nit !== ""){
             $.ajax({
                 type: 'POST',
-                url: "{% url 'cod_x_enterprise' %}",
+                url: "{% url 'repor_assigned' %}",
                 data: {
                     "csrfmiddlewaretoken": "{{ csrf_token }}",
                     "nit": nit
@@ -93,8 +98,10 @@
                 },
                 success: function (response) {
                     
-                    pintarTablaCode(response.data);
-                    console.log(response.data);          
+                    pintarTablaCodeSquemaTipo(response.data);
+                    pintarTablaEsquemaQuantity(response.data_count_description);
+                    //console.log(response.data);  
+                    console.log(response.data_count_description);          
 
                 },
                 
@@ -114,10 +121,10 @@
     });
 
 
-    function pintarTablaCode(data){
-        $('#data-table_code').DataTable().destroy();
-        $('#data-table_code').show();
-        $('#data-table_code').DataTable({
+    function pintarTablaCodeSquemaTipo(data){
+        $('#data-table_code_count').DataTable().destroy();
+        $('#data-table_code_count').show();
+        $('#data-table_code_count').DataTable({
             dom: 'B<"clear">rtip',
             pageLength: 6,
             buttons: {
@@ -128,16 +135,42 @@
             },
             "data": data,
             "columns": [
-                { "data": "prefix_id__enterprise_id__enterprise_name" },
-                { "data": "id" },
-                { "data": "prefix_id__id_prefix" },
                 { "data": "prefix_id__schema_id__description" },
-                { "data": "description" },
                 { "data": "state_id__description" },
-                { "data": "prefix_id__enterprise_id__identification" },
-                { "data": "assignment_date" },
-                { "data": "prefix_id__validity_date" },
-                { "data": "product_type_id__description" }
+                { "data": "range_id__name" },
+                { "data": "state_id__description__count" }
+
+            ], select: true,
+            lengthMenu: [
+                [15, 30, 45, -1],
+                ["15 Rows", "30 Rows", "45 Rows", "Todo"]
+            ],
+            language: {
+                searchPlaceholder: "Buscar Datos",
+                infoEmpty: "La tabla no tiene registros",
+                zeroRecords: "Uppps, No tenemos resultados para tu busqueda",
+            },
+        });
+
+
+    }
+
+    function pintarTablaEsquemaQuantity(data){
+        $('#data-table_esquema_quantity').DataTable().destroy();
+        $('#data-table_esquema_quantity').show();
+        $('#data-table_esquema_quantity').DataTable({
+            dom: 'B<"clear">rtip',
+            pageLength: 6,
+            buttons: {
+                name: 'primary',
+                buttons: [
+                'copy', 'csv', 'excel','pdf'
+                ]
+            },
+            "data": data,
+            "columns": [
+                { "data": "prefix_id__schema_id__description" },
+                { "data": "prefix_id__schema_id__description__count" }
 
             ], select: true,
             lengthMenu: [
