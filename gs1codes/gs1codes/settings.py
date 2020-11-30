@@ -41,11 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'administration',
-    'simple_history',
+    'administration',    
     'rest_framework',
     'rest_framework_swagger',
     'reports',
+    'simple_history',
 ]
 
 

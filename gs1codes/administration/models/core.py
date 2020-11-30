@@ -875,5 +875,5 @@ class LogPortfolioUpload(models.Model):
     """
     reply = JSONField()
     
-    history = HistoricalRecords()
+    #history = HistoricalRecords()
 
