@@ -97,10 +97,10 @@ def VerifiedGs1(okCodes: List[CodesVerified]):
 
             if (obj_license['status'] == 0):
                 obj_registry = PrefixRegistry()
-                obj_registry.Key = obj_prefix.id_prefix
-                obj_registry.Type = "gcp"
-                obj_registry.CompanyName = obj_enterprise.enterprise_name
-                obj_registry.Status = 1
+                obj_registry['key'] = str(obj_prefix.id_prefix)
+                obj_registry['type'] = "gcp"
+                obj_registry['companyName'] = obj_enterprise.enterprise_name
+                obj_registry['status'] = 1
 
                 AddPrefRegistry = AddLicense(obj_registry)
 

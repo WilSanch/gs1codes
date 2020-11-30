@@ -8,7 +8,7 @@ def grouper(iterable, n):
     args = [iter(iterable)] * n
     return itertools.zip_longest(*args)
 def export_to_pdf(data):
-    c = canvas.Canvas("grilla-certificado.pdf", pagesize=A4)
+    c = canvas.Canvas("Estado prefijos.pdf", pagesize=A4)
     
     w, h = A4
     c.drawImage("logyca_logo.jpg",50, h - 90)

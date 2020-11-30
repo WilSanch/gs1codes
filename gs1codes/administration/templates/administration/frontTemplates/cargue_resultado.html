@@ -39,7 +39,7 @@
 <div class="row">  
      
     
-    <table id="data-table" class="table table-bordered" style="width:100%" >  
+    <table id="data-table" class="table table-bordered" style="display: none; width:100%" >  
          <thead>  
               <tr>  
                    <th>ID</th>  
@@ -54,7 +54,7 @@
 </div> 
 
 <div class="row">  
-    <table id="data-table-resultado" class="table table-bordered">  
+    <table id="data-table-resultado" class="table table-bordered" style="display: none; width:100%">  
          <thead>  
               <tr>  
                    <th>CODIGO</th>  
@@ -131,6 +131,7 @@
 
     function pintarTablaCargue(data){
         $('#data-table').DataTable().destroy();
+        $('#data-table').show();
         $('#data-table').DataTable({
             "data": data,
             "columns": [
@@ -158,6 +159,7 @@
             var data = table.row( this ).data();
             let tableCodigos = $('#data-table-resultado').DataTable();
             tableCodigos.destroy();
+            $('#data-table-resultado').show();
             //pintar la otra tabla
             $('#data-table-resultado').DataTable({
             "data":data["reply"]["IdCodigos"],

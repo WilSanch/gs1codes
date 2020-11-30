@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'simple_history',
     'rest_framework',
     'rest_framework_swagger',
+    'reports',
 ]
 
 

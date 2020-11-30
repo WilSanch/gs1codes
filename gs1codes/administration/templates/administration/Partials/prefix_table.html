@@ -1,89 +1,84 @@
 <h6 class="center">PREFIJOS ASIGNADOS</h6>
 <input type="text" id="filter_prefix" placeholder="Buscar...">
 
-<table class="table stripped"  style="white-space: nowrap;" id="tbl_prefix_table">  
+<table class="table stripped" style="white-space: nowrap;" id="tbl_prefix_table">
     <thead>
         <tr>
-        <th style="display: none;"></th>
-        <th>Prefijo</th>
-        <th>Códigos</th>
-        <th style="display: none;"></th>
-        {% if contexto.opc != 1 %}
+            <th style="display: none;"></th>
+            <th>Prefijo</th>
+            <th>Códigos</th>
+            <th style="display: none;"></th>
+            {% if contexto.opc != 1 %}
             <th></th>
-        {% endif %} 
-        <th>Tipo</th>
-        <th>Esquema</th>
-        <th>Estado</th>
-        <th>Observación</th>
-        <th>Fecha asignación</th>
-        <th>Fecha vigencia</th>
+            {% endif %}
+            <th>Tipo</th>
+            <th>Esquema</th>
+            <th>Estado</th>
+            <th>Observación</th>
+            <th>Fecha asignación</th>
+            <th>Fecha vigencia</th>
         </tr>
     </thead>
-    <tbody >
-    {% for index,row in contexto.prefix %}
-    <tr>
-        <td style="display: none;">{{row.id}}</td>
-        <td>{{row.id_prefix}}</td>
-        <td style="text-align:right;">
-            {{row.assigned}}/{{row.quantity_code}}&nbsp;
-            {% if contexto.opc != 3 %}
+    <tbody>
+        {% for index,row in contexto.prefix %}
+        <tr>
+            <td style="display: none;">{{row.id}}</td>
+            <td>{{row.id_prefix}}</td>
+            <td style="text-align:right;">
+                {{row.assigned}}/{{row.quantity_code}}&nbsp; {% if contexto.opc != 3 %}
                 <button class="btn-floating btn-small waves-effect waves-light blue" id="btnShow">
                 <i class="material-icons">loupe</i>
-                </button>
-            {% endif %}
-        </td>
-        <td style="display: none;">{{contexto.opc}}</td>
-        {% if contexto.opc == 2 %}
+                </button> {% endif %}
+            </td>
+            <td style="display: none;">{{contexto.opc}}</td>
+            {% if contexto.opc == 2 %}
             <td id="cntActionpr">
                 {% if row.state_id == 2 %}
-                    <button class="btn-small waves-effect waves-light orange lighten-1" id="btnInactivepr" title="Inactivar" type="submit">
+                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnInactivepr" title="Inactivar" type="submit">
                         <i class="material-icons prefix">indeterminate_check_box</i>
-                    </button>
-                {% endif %}
-                {% if row.state_id == 3 %}
-                    <button class="btn-small waves-effect waves-light grey deep-orange" id="btnInactivepr" title="Activar" type="submit">
+                    </button> {% endif %} {% if row.state_id == 3 %}
+                <button class="btn-small waves-effect waves-light grey deep-orange" id="btnInactivepr" title="Activar" type="submit">
                         <i class="material-icons prefix">check_box</i>
-                    </button>
-                {% endif %}
+                    </button> {% endif %}
             </td>
         {% endif %} 
         {% if contexto.opc == 3 %}
             {% if row.regrouping == 1 and row.state_id != 4 %}
                 <td id="cntActionpr">
                     <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
+            {% endif %} {% if contexto.opc == 3 %} {% if row.regrouping == 1 %}
+            <td id="cntActionpr">
+                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
                         <i class="material-icons prefix">group_work</i>
                     </button>
-                </td>
+            </td>
             {% else %}
-                <td></td>
-            {% endif %}
-        {% endif %} 
-        {% if contexto.opc == 4 %}
+            <td></td>
+            {% endif %} {% endif %} {% if contexto.opc == 4 %}
             <td id="cntActionpr">
                 <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRefundpr" title="Devolver" type="submit">
                     <i class="material-icons prefix">undo</i>
                 </button>
             </td>
-        {% endif %}
-        {% if contexto.opc == 5 %}
+            {% endif %} {% if contexto.opc == 5 %}
             <td id="cntActionpr">
                 <button class="btn-small waves-effect waves-light orange lighten-1" id="btnTransferpr" title="Procesar" type="submit">
                     <i class="material-icons prefix">redo</i>
                 </button>
             </td>
-        {% endif %}
-        <td style="text-align:center;">{{row.type}}</td>
-        <td>{{row.schema}}</td>
-        <td style="text-align:center;">{{row.state}}</td>
-        <td>{{row.observation}}</td>
-        <td style="text-align:center;">{{row.assignment_date}}</td>
-        <td style="text-align:center;">{{row.validity_date}}</td>
-    </tr>
-    {% endfor %}
+            {% endif %}
+            <td style="text-align:center;">{{row.type}}</td>
+            <td>{{row.schema}}</td>
+            <td style="text-align:center;">{{row.state}}</td>
+            <td>{{row.observation}}</td>
+            <td style="text-align:center;">{{row.assignment_date}}</td>
+            <td style="text-align:center;">{{row.validity_date}}</td>
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
 <script>
-    $(document).ready(function(){
+    $(document).ready(function() {
         var obj_tbl = $('#tbl_prefix_table').DataTable({
             dom: 'B<"clear">rtip',
             pageLength: 6,
@@ -94,52 +89,66 @@
             orderCellsTop: true
         });
 
-        $('#filter_prefix').keyup(function(){
-            obj_tbl.search($(this).val()).draw() ;
+        $('#filter_prefix').keyup(function() {
+            obj_tbl.search($(this).val()).draw();
         })
     });
 
     $("#tbl_prefix_table").on("click", "#btnShow", function() {
-        var currentRow=$(this).closest("tr");
+        var currentRow = $(this).closest("tr");
         var prefixId = currentRow.find("td:eq(0)").text();
         var opc = currentRow.find("td:eq(3)").text();
         $("#codesTable").html("");
-        
+
         $.ajax({
             url: "{% url 'ajax_load_codestable' %}",
-            data: {'prefixId': prefixId,
-                    'opc': opc},
-            success:function(result){
+            data: {
+                'prefixId': prefixId,
+                'opc': opc
+            },
+            success: function(result) {
                 $("#codesTable").html(result);
             },
         });
     });
 
     $("#tbl_prefix_table").on("click", "#btnInactivepr", function() {
-        var currentRow=$(this).closest("tr");
+        var currentRow = $(this).closest("tr");
         var prefixId = currentRow.find("td:eq(0)").text();
         var nit = $('#nit').val();
+        var observation = $('#observation').val();
+        var response = confirm(`¿Esta seguro de inactivar el prefijo ${prefixId} de la empresa con NIT ${nit}?`);
+
         var tmpurl = "{% url 'action_prefix' enterprise_nit=None opc=2 %}";
-        $.ajax({
-            type: 'POST',
-            url: tmpurl,
-            data: {'prefixId': prefixId,
-                    'nit': nit},
-            success:function(result){
-                $("#prefixTable").html(result);
-                $("#codesTable").html("");
-            },
-        });
+        if (observation == '') {
+            alert('Debe especificar la observación');
+            return;
+        }
+
+        if (response == true) {
+            $.ajax({
+                type: 'POST',
+                url: tmpurl,
+                data: {
+                    'prefixId': prefixId,
+                    'nit': nit,
+                    'observation': observation
+                },
+                success: function(result) {
+                    $("#prefixTable").html(result);
+                    $("#codesTable").html("");
+                },
+            });
+        }
     });
-    
+
     $("#tbl_prefix_table").on("click", "#btnRegrouppr", function() {
-        var currentRow=$(this).closest("tr");
+        var currentRow = $(this).closest("tr");
         var prefixId = currentRow.find("td:eq(0)").text();
         var nit = $('#nit').val();
         var tmpurl = "{% url 'action_prefix' enterprise_nit=None opc=3 %}";
         var migration_date = $('#migrationdate').val();
-        if (migration_date=='')
-        {
+        if (migration_date == '') {
             alert('Debe especificar la fecha de migración');
             return;
         }
@@ -147,10 +156,12 @@
         $.ajax({
             type: 'POST',
             url: tmpurl,
-            data: {'prefixId': prefixId,
-                    'nit': nit,
-                    'migration_date': migration_date},
-            success:function(result){
+            data: {
+                'prefixId': prefixId,
+                'nit': nit,
+                'migration_date': migration_date
+            },
+            success: function(result) {
                 $("#prefixTable").html(result);
                 $("#codesTable").html("");
             },
@@ -158,33 +169,37 @@
     });
 
     $("#tbl_prefix_table").on("click", "#btnRefundpr", function() {
-        var currentRow=$(this).closest("tr");
+        var currentRow = $(this).closest("tr");
         var prefixId = currentRow.find("td:eq(0)").text();
         var nit = $('#nit').val();
         var observation = $('#observation').val();
+        var response = confirm(`¿Está seguro de realizar la devolición de código con el prefijo ${prefixId} de la empresa con NIT ${nit}?`);
 
         var tmpurl = "{% url 'action_prefix' enterprise_nit=None opc=4 %}";
-        if (observation=='')
-        {
+        if (observation == '') {
             alert('Debe especificar la observación');
             return;
         }
 
-        $.ajax({
-            type: 'POST',
-            url: tmpurl,
-            data: {'prefixId': prefixId,
+        if (response == true) {
+            $.ajax({
+                type: 'POST',
+                url: tmpurl,
+                data: {
+                    'prefixId': prefixId,
                     'nit': nit,
-                    'observation': observation},
-            success:function(result){
-                $("#prefixTable").html(result);
-                $("#codesTable").html("");
-            },
-        });
+                    'observation': observation
+                },
+                success: function(result) {
+                    $("#prefixTable").html(result);
+                    $("#codesTable").html("");
+                },
+            });
+        }
     });
 
     $("#tbl_prefix_table").on("click", "#btnTransferpr", function() {
-        var currentRow=$(this).closest("tr");
+        var currentRow = $(this).closest("tr");
         var prefixId = currentRow.find("td:eq(0)").text();
         var nit = $('#nit').val();
         var destiny_nit = $('#destiny_nit').val();
@@ -192,34 +207,37 @@
         var process = $('select#process').val();
 
         var tmpurl = "{% url 'action_prefix' enterprise_nit=None opc=5 %}";
-        if (observation=='')
-        {
+        if (observation == '') {
             alert('Debe especificar la observación');
             return;
         }
-        if (nit=='')
-        {
+        if (nit == '') {
             alert('Debe especificar la empresa que cede');
             return;
         }
-        if (destiny_nit=='')
-        {
+        if (destiny_nit == '') {
             alert('Debe especificar la empresa que recibe');
             return;
         }
 
-        $.ajax({
-            type: 'POST',
-            url: tmpurl,
-            data: {'prefixId': prefixId,
+        var response = confirm(`¿Está seguro de realizar la cesión de código con prefijo ${prefixId} de la empresa con NIT ${nit}?`);
+
+        if (response == true) {
+            $.ajax({
+                type: 'POST',
+                url: tmpurl,
+                data: {
+                    'prefixId': prefixId,
                     'nit': nit,
                     'destiny_nit': destiny_nit,
                     'observation': observation,
-                    'process': process},
-            success:function(result){
-                $("#prefixTable").html(result);
-                $("#codesTable").html("");
-            },
-        });
+                    'process': process
+                },
+                success: function(result) {
+                    $("#prefixTable").html(result);
+                    $("#codesTable").html("");
+                },
+            });
+        }
     });
 </script>
