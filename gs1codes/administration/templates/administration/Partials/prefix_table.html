@@ -34,46 +34,49 @@
             {% if contexto.opc == 2 %}
             <td id="cntActionpr">
                 {% if row.state_id == 2 %}
-                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnInactivepr" title="Inactivar" type="submit">
+                    <button class="btn-small waves-effect waves-light orange lighten-1" id="btnInactivepr" title="Inactivar" type="submit">
                         <i class="material-icons prefix">indeterminate_check_box</i>
-                    </button> {% endif %} {% if row.state_id == 3 %}
-                <button class="btn-small waves-effect waves-light grey deep-orange" id="btnInactivepr" title="Activar" type="submit">
+                    </button> 
+                {% endif %} 
+                {% if row.state_id == 3 %}
+                    <button class="btn-small waves-effect waves-light grey deep-orange" id="btnInactivepr" title="Activar" type="submit">
                         <i class="material-icons prefix">check_box</i>
-                    </button> {% endif %}
+                    </button> 
+                {% endif %}
             </td>
-        {% endif %} 
-        {% if contexto.opc == 3 %}
-            {% if row.regrouping == 1 and row.state_id != 4 %}
-                <td id="cntActionpr">
-                    <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
-            {% endif %} {% if contexto.opc == 3 %} {% if row.regrouping == 1 %}
-            <td id="cntActionpr">
-                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
-                        <i class="material-icons prefix">group_work</i>
-                    </button>
-            </td>
-            {% else %}
-            <td></td>
-            {% endif %} {% endif %} {% if contexto.opc == 4 %}
-            <td id="cntActionpr">
-                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRefundpr" title="Devolver" type="submit">
-                    <i class="material-icons prefix">undo</i>
-                </button>
-            </td>
-            {% endif %} {% if contexto.opc == 5 %}
-            <td id="cntActionpr">
-                <button class="btn-small waves-effect waves-light orange lighten-1" id="btnTransferpr" title="Procesar" type="submit">
-                    <i class="material-icons prefix">redo</i>
-                </button>
-            </td>
-            {% endif %}
-            <td style="text-align:center;">{{row.type}}</td>
-            <td>{{row.schema}}</td>
-            <td style="text-align:center;">{{row.state}}</td>
-            <td>{{row.observation}}</td>
-            <td style="text-align:center;">{{row.assignment_date}}</td>
-            <td style="text-align:center;">{{row.validity_date}}</td>
-        </tr>
+            {% endif %} 
+                {% if contexto.opc == 3 %} 
+                    {% if row.regrouping == 1 %}
+                        <td id="cntActionpr">
+                            <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRegrouppr" title="Reagrupar" type="submit">
+                                    <i class="material-icons prefix">group_work</i>
+                                </button>
+                        </td>
+                    {% else %}
+                    <td></td>
+                    {% endif %} 
+                {% endif %} 
+                {% if contexto.opc == 4 %}
+                    <td id="cntActionpr">
+                        <button class="btn-small waves-effect waves-light orange lighten-1" id="btnRefundpr" title="Devolver" type="submit">
+                            <i class="material-icons prefix">undo</i>
+                        </button>
+                    </td>
+                {% endif %} 
+                {% if contexto.opc == 5 %}
+                    <td id="cntActionpr">
+                        <button class="btn-small waves-effect waves-light orange lighten-1" id="btnTransferpr" title="Procesar" type="submit">
+                            <i class="material-icons prefix">redo</i>
+                        </button>
+                    </td>
+                {% endif %}
+                <td style="text-align:center;">{{row.type}}</td>
+                <td>{{row.schema}}</td>
+                <td style="text-align:center;">{{row.state}}</td>
+                <td>{{row.observation}}</td>
+                <td style="text-align:center;">{{row.assignment_date}}</td>
+                <td style="text-align:center;">{{row.validity_date}}</td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>
