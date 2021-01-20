@@ -26,8 +26,7 @@ SECRET_KEY = 'dq5l*@^vc&6v96fyoqf!f&mj&de!w#5f*4xm=v7po+spts50z4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -95,13 +94,24 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'gs1codes',
+#         'USER': 'postgres',
+#         'PASSWORD': 'Desarrollo',
+#         'HOST': '127.0.0.1',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gs1codes',
-        'USER': 'postgres',
-        'PASSWORD': 'Desarrollo',
-        'HOST': '127.0.0.1',
+        'USER': 'adminasignaciontest@postgsql-asignacioncodigos-test',
+        'PASSWORD': 'P0stgre$ql2021#',
+        'HOST': 'postgsql-asignacioncodigos-test.postgres.database.azure.com',
         'PORT': '5432',
     }
 }
