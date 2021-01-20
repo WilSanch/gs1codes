@@ -31,4 +31,4 @@ jobs:
       with:
         app-name: 'asc-pruebas'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_fb528032f64d4680b319a40aa33eb7f3 }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_232433dbca0d4308834b71205a8b3f8b }}
